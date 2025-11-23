@@ -1090,8 +1090,66 @@ Database becomes useless after restart              Database survives restarts
 - Volumes are stored and managed by Docker internally. 
 
 
-**Types of Volumes: **
+**Types of Volumes:**
 
 - Named Volumes 
 - Anonymous Volumes
 - Bind Mount 
+
+
+
+## Docker Image Pulling Vs. GitHub 
+
+
+1. What does it mean when people say "Docker images contain everything (environment + dependencies)"? 
+
+- A Docker image bundles the entire application environment, including: 
+
+    Source code, Required runtime (Node, Python, Java, etc), OS-level libraries, App dependenceis, Configurations
+
+So when we run the image, the app works the same on any machine, regardless of the OS or versions installed. 
+
+
+2. When I pull an image from Docker Hub, does it download the source code like GitHub? 
+
+- No, pulling a Docker image doesn't give you the source code. It gives you a packaged, ready-to-run application, similar to downloading: 
+
+    A compiled .exe
+
+    An already packaged mobile app
+
+    A ready-made service 
+
+You cannot edit the app simply by pulling the image 
+
+
+3. If pulling an image doesn't give the code, what is the purpose of pulling a Docker image? 
+
+- The purpose is to run the application instantly without installing: 
+
+    runtime (Node, Python, Java), dependencies (npm install, pip install), system packages, OS-level libraries
+
+    By pulling an image, we get a ready-to-run application with zero setup required. 
+
+
+4. Does Docker pull work the same way as GitHub pull? 
+
+- No, they are completely different. 
+
+    GitHub pull: downloads source code, requires environment setup, user edits the code, not ready to run 
+
+    Docker pull: Downloads packaged application, No setups needed, User runs the app, Ready to run 
+
+
+5. Why do we use Docker instead of installing applications manually? 
+
+Because Docker makes apps: 
+
+- Easier to install -> one command 
+- Consistent -> same version everywhere 
+- Portable -> runs on any machine 
+- Isolated -> no conflicts with other apps 
+- Fast to deploy -> server only needs Docker 
+
+
+- Use DockerHub when you want to share a runnable application. Use GitHub when you want to share the source code. 
