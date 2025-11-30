@@ -1,0 +1,44 @@
+FROM node:18-alpine
+
+# Create a app directory - Creates a folder /app inside the container. All following commands run inside this folder. 
+
+WORKDIR /app
+
+# Install app dependencies - copies these files into /app.. used for installing dependencies before copying the whole code. Why? 
+
+# Docker caches layers - if source code changes but dependencies don't, Docker won't need to reinstall npm packages. Faster builds 
+
+COPY package*.json ./
+
+# Run npm install - installs everything listend in dependencies, devDependencies. This happens inside the container, not on our host system 
+
+RUN npm install 
+
+# Bundle app source - COPY all the project files. Copies your entire project folder -> into /app inside the container. Now your app code is inside the container. 
+
+COPY . .
+
+EXPOSE 8080
+
+# Command that runs when the container starts. Equivalent to running "npm start" in your terminal. 
+
+CMD [ "npm", "start"]
+
+
+
+
+# Docker layer caching - Docker builds a container step by step. Each line in the Dockerfile becomes a layer. Example - 
+
+# COPY package files -> layer
+# RUN npm install -> layer
+# COPY all other code -> layer 
+
+# Why this matters? 
+
+# If the code changes (like index.js or server.js) but the package.json file did NOT change ...
+
+# Docker will reuse the npm install layer instead of running it again. This makes builds much faster. 
+
+# EXAMPLE - You modify server.js -> Docker sees only the last layer changed. It doesn't re-run "npm install" (because package.json didn't change). Saves a LOT of time. 
+
+# This is why we first copy package.json, install the dependencies, and THEN copy the rest. 
