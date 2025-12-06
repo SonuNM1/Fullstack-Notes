@@ -38,3 +38,20 @@
 - Test servers and containers 
 - Check if a URL is working 
 - Debug endpoints 
+
+
+## req.body, req.params , req.query
+
+
+## Middleware 
+
+- middleware functions sit in between the request and the final route handler. 
+
+- A middleware must call next() to tell Express: I am done here. Pass control to the next middleware or the final route. 
+
+**What if we DON'T use next()?**
+
+- the request will get stuck 
+- the next route will never run 
+- the client will not receive any response 
+- the request will eventually timeout 

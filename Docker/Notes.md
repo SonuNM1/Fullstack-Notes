@@ -1595,3 +1595,13 @@ So:
 - Any file you add or edit in your host folder -> instantly visible inside container 
 
 - Any file container creates -> instantly visible on your host (unless it's a Docker volume)
+
+
+## Dockerfile 
+
+
+- Dockerfile: a set of instructions for building an image. 
+
+    includes installing dependencies, copying source code, setting configuration, etc. 
+
+    a container is a running instance of an image. 
