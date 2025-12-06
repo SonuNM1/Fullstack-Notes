@@ -131,3 +131,25 @@
 - API Placeholder (JSON)
 
 - Stampede Protection (Redis)
+
+- Cache Invalidation (Redis)
+
+- Eviction policies, Memory limit (Redis)
+
+- PostgreSQL
+
+- FramerMotion
+
+- Monolith & Microservices 
+
+- Redis Data structures 
+
+- All hooks in React 
+
+- Custom hooks 
+
+- Context API / Redux / Zustand 
+
+- Build and Deploy a Node.js App on AWS EC2 - Docker/GitHub Actions/CI-CD Pipelines 
+
+- Redis Pub/Sub
