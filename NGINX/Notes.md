@@ -491,3 +491,10 @@ http {
 ```
 
 - A `nginx.conf` serves React static files and proxies API requests to a Node backend running on localhost. 
+
+
+
+
+
+
+
