@@ -111,13 +111,16 @@
 
     hoisted, but not initialized. This creates the Temporal Dead Zone (TDZ). 
 
-    TDZ = means you cannot access the variable before its declaration line. 
+    **TDZ** = means you cannot access the variable before its declaration line. 
 
     Accessing -> ReferenceError 
 
     Why? Prevents bugs caused by var. Enforces better coding practices, Make code more predictable. 
 
     let and const are hoisted but kept in the temporal dead zone until initialized, which prevents accidental access before declaration.
+
+
+**Temporal Dead Zone:** is a phase in a block where variables declared with `let` or `const` are hoisted but not initialized, so accessing them before declaration throws an error. 
 
 
 - Function declarations are fully hoisted, function expressions are not fully hoisted. 
@@ -154,6 +157,8 @@
         Arrow function do not have their own `this`. They inherit `this` from parent scope. 
 
 - the value of `this` depends on the call site, not the function definition. 
+
+- stores current execution context of the program
 
 
 **Why we haven't used `this` in development?**
@@ -432,6 +437,8 @@ When this line runs:
     1. Avoid polluting the global scope 
     2. Create a private scope 
     3. Used in older JS (before ES6 modules)
+
+- IIFE was used to create private scope and avoid global variable pollution before ES6. 
 
 
 ## Strict mode 
@@ -796,6 +803,8 @@ Event delegation is a technique where a single event listener is attached to a p
 
 - JavaScript is single-threaded. Timer allows us to: delay execution, schedule repeated execution, keeps JS non-blocking. 
 
+- Timers to schedule tasks after a delay or at regular intervals. These are not part of the JS engine itself, but come from the browser (Web APIs) or Node.js environment. 
+
 1. **setTimeout:** Executes a function once after a specified delay. 
 
     setTimeout(() => {
@@ -951,3 +960,188 @@ Event represent user or browser actions.
 - What it contains: Global variables, DOM, Web APIs, Timers 
 
 - The `window` object represents the browser environment and acts as the global scope. 
+
+
+## How to add new elements dynamically 
+
+- Add an element to the DOM: 
+
+    const div = document.createElement("div") ; 
+    div.textContent = "Hello"  ; 
+    document.body.appendChild(div) ; 
+
+
+## Destructuring 
+
+- Destructuring allows extracting values from arrays or objects into variables in a clean way. 
+
+1. Array Destructuring 
+
+    const arr = [10, 20, 30] ;
+    const [a, b] = arr ; 
+
+    a = 10, b = 20 ; 
+
+2. Object Destructuring 
+
+    const user = {name: "SonuNM", age: 25}
+    const {name, age} = user
+
+- Why Destructuring is useful? 
+
+    Cleaner code, less repetition, improves readability 
+
+
+## Spread Operator (...)
+
+
+- Spread Operator expands arrays, objects, or values. 
+
+- Creates a new copy. Prevents accidental mutation. Maintains immutability. 
+
+1. Spread with Arrays 
+
+    const a = [1, 2] ; 
+    const b = [...a] ; 
+
+2. Spread with Objects 
+
+    const user2 = {...user}
+
+
+
+## Important ES6 Features 
+
+ES6 introduced modern JavaScript features like arrow functions, let/const, destructuring, spread operator, classes, and modules. 
+
+1. `let` & `const`
+
+    Block scoped, Avoid hoisting issues 
+
+2. Arrow Functions 
+
+    Short syntax, No own `this`
+
+        const add = (a, b) => a + b;
+
+3. Template Literals 
+
+    `Hello ${name}`
+
+4. Destructuring 
+
+    const {name} = user ;
+
+5. Spread & Rest Operator 
+
+    {...obj}
+
+6. Default Parameters 
+
+    function greet(name = "Guest") {}
+
+7. Classes 
+
+    class User {
+    constructor(name) {
+        this.name = name;
+    }
+    }
+
+8. Modules (`import/export`)
+
+    export default App; 
+    import App from "./App" ; 
+
+9. Promises 
+
+    fetch().then().catch()
+
+
+## Object.freeze()
+
+
+- `Object.freeze()` makes an object immutable - its properties cannot be added, removed, or modified. 
+
+    const user = {name: "SonuNM"} ; 
+    Object.freeze(user) ; 
+
+    user.name = "Garima" ; // ignored (error in strict mode)
+
+- What freeze prevents? 
+
+    Add, modify and delete properties 
+
+- `Object.freeze` is used to prevent modification of objects and enforcce immutability. 
+
+
+## Memory Leak 
+
+A memory leak happens when unused memory is not released by the garbage collector. 
+
+- Leads to: slow performance, app crashes, high memory usage 
+
+- **How Garbage Collection Works?**
+
+    JS automatically removes unreachable objects. If something is still unreferenced -> memory stays. 
+
+- Common Causes of Memory Leaks 
+
+    1. Global Variables
+    2. Unremoved Event Listeners 
+    3. Timers not cleared 
+    4. DOM references 
+    
+
+## Debounce Vs. Throttle 
+
+Browser events like: scroll, resize, keypress, mousemove .. can fire hundreds of times per second, causing: 
+
+    Performance issues, UI lag, Excessive API calls 
+
+- Debounce and Throttle control function execution frequency. 
+
+    Debounce = wait 
+    Throttle = limit 
+
+- Debouce delays function execution until the user stops triggering the event, while throttle ensures the function runs at most once in a specified time interval. 
+
+1. **Debounce**
+
+- Debounce means that a function is executed only after a specified delay once the event stops firing. 
+
+- How it works: 
+
+    Event fires -> timer starts 
+    Event fires again -> timer resets 
+    
+    Function executes only after user stops. 
+
+- Example: API call happens after typing stops 
+
+- Real world use cases: Search input, Auto-save, Window resize, Form validation. 
+
+- Debouncing delays function execution until the event stops firing. 
+
+
+2. Throttle 
+
+- Throttle ensures that a function is executed at most once in a given time interval, no matter how many times the event fires. 
+
+- How it works? 
+
+    Function executes immediately. 
+    Ignores further calls until interval ends. 
+
+- Example: scroll event 
+
+    Function runs every `500ms`, not continuously. 
+
+- Real-world use cases: 
+
+    Scroll event handling 
+    Button click prevention 
+    Window resize tracking 
+    Mouse movement 
+
+- Throttling limits function execution to once per specified time interval. 
