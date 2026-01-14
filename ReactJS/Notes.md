@@ -521,7 +521,7 @@ The React Lifecycle describes the stages a component goes through from creation 
 
 2. Inline Styling 
 
-3. CSS Modules 
+3. CSS Module
 
 4. Styled Components 
 
