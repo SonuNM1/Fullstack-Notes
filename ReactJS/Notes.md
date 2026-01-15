@@ -528,3 +528,334 @@ The React Lifecycle describes the stages a component goes through from creation 
 5. SASS / SCSS 
 
 6. Utility Libraries 
+
+
+## Lazy loading & Suspense 
+
+## Params Vs. Query 
+
+## How SPA Works
+
+## Protected Routes and Auth-based access logic 
+
+## JSON.stringify Vs JSON.parse 
+
+## Stateless Vs Stateful (component, architecture)
+
+## Why Stateful Architecture problematic
+
+- Stateful architecture = Server remembers User 
+
+- Server stores session -> Session is stored in memory/DB -> User identified via sessionId cookie 
+
+**Problem 1: Scaling Issue** 
+
+    1 Server -> works fine. Now, user increases. 
+
+    To handle load, we add multiple servers. 
+
+    Load Balancer
+        ↓
+    Server A   Server B   Server C
+
+    What goes wrong? 
+
+    - User logs in -> session stored on Server A
+
+    - Next request -> load balancer sends request to Server B
+
+    - Server B doesn't have the session. 
+
+        User appears logged out. 
+
+**Problem 2: Server Crash = User logout**
+
+    If server restarts: Memory cleared, All users logged out 
+
+**Problem 3: Cloud & Microservices Unfriendly**
+
+    Modern apps use: Auto scaling, Containers, Serverless 
+
+    Stateful systems -> don't work well with dynamic servers 
+
+**Why Stateless is better?**
+
+    Stateless = server doesn't remember anyone 
+
+    - Every request is independent 
+    - Any server can handle any request 
+    - Easy scaling 
+    - Cloud-friendly 
+
+
+## React Hooks
+
+- Hooks are functions that lets us use state and lifecycle features in functional components 
+
+- Introduced in React 16.8, replaces class components. 
+
+- Makes code more reusable, concise and less complex. 
+
+- Hooks should be called at the top level of React function component. 
+
+    Because React relies on the call ORDER of hooks. React stores hooks in an array, based on call order. 
+
+    Hooks rely on consistent call order, which is why they must be called at the top level. 
+
+- Hooks must be called in the same order on every render. If used in loops, the order breaks, causing errors. 
+
+## Context API 
+
+- Avoids passing props manually 
+- Provides global data 
+
+- Why named Context? 
+
+    Because it provides contextual data to components. 
+
+    Example: User context, Theme context, Auth context 
+
+- It has 3 things: 
+
+    createContext, Provider, Consumer 
+
+- How it works 
+
+    const UserContext = createContext() ; 
+
+    <UserContext.Provider value={user}>
+        <App/>
+    </UserContext.Provider>
+
+    const user = useContext(UserContext)
+
+
+- User needed in Profile but passed through 4 layers. 
+
+    `App → Navbar → Menu → Profile → User`
+
+- Why this is bad? Unnecessary props, Hard to maintain, Tight coupling 
+
+- Context API solution: Global store for specific data, Components access directly. Also Redux is heavy for simple cases. 
+
+- We have: Logged-in user, Theme (dark/light), Language, Cart count. These are needed everywhere. 
+
+    Without context, we end up doing: 
+
+    <App user={user}>
+        <Navbar user={user}>
+            <Profile user={user}/>
+        </Navbar>
+    </App>
+
+    Prop drilling, ugly, harder to maintain. 
+
+
+**Step 1: Create Context**
+
+    import { createContext } from "react";
+
+    export const AuthContext = createContext(null);
+
+**Step 2: Provide context at top level**
+
+    function App() {
+    const user = {
+        name: "John",
+        role: "admin"
+    };
+
+    return (
+        <AuthContext.Provider value={user}>
+        <Navbar />
+        <Dashboard />
+        </AuthContext.Provider>
+    );
+    }
+
+**Step 3 - Consume context everywhere**
+
+    import { useContext } from "react";
+    import { AuthContext } from "./AuthContext";
+
+    function Navbar() {
+    const user = useContext(AuthContext);
+
+    return <h3>Welcome {user.name}</h3>;
+    }
+
+
+## useRef 
+
+- `useRef` persists values across renders without triggering re-render. 
+
+- Access DOM, Doesn't cause re-render 
+
+- Using state causes re-render: 
+
+    const [timer, setTimer] = useState(0) ; 
+
+    Each update -> re-render ❌
+
+    `useRef` working 
+
+    const timerRef = useRef(0) ; 
+    timerRef.current += 1 ; 
+
+- Value persists on refresh, no re-render
+
+- Use cases: Accessing DOM
+
+
+## `useMemo` & `useCallback`
+
+**1. useMemo**
+
+- Problem: Expensive calculation runs every render. 
+
+    const total = calculateTotal(items) ; 
+
+- Solution: 
+
+    const total = useMemo(
+        () => calculateTotal(items),
+        [items]
+    );
+
+    Recomputed only when items change. 
+
+- Use case: filtering large lists, sorting, heavy computations
+
+
+**2. useCallback**
+
+- Problem: Functions recreated every render. 
+
+    const handleClick = () => {} ; 
+
+- Solution: 
+
+    const handleClick = useCallback(() => {}, []) ; 
+
+- `useCallback` memoizes functions to prevent unnecessary re-renders. 
+
+
+## Heavy Computation - Real eCommerce `useMemo` example 
+
+- Real Problem - eCommerce product list with: Filtering, Sorting, Searching 
+
+    products = 20,000 items
+
+    Every keystroke -> re-render -> expensive filter 
+
+- Without `useMemo`
+
+    const filteredProducts = products.filter(p =>
+    p.name.includes(search)
+    );
+
+    This runs on every render 
+
+- With `useMemo`
+
+    const filteredProducts = useMemo(() => {
+    console.log("Filtering products...");
+    return products.filter(p =>
+        p.name.includes(search)
+    );
+    }, [products, search]);
+
+    - Runs only when `search` changes. Performance boost. 
+
+- `useMemo` prevents expensive recalculations by memoizing results. 
+
+
+## `useCallback` - Example 
+
+- **Problem:** We have - A Parent component, A Child component, Parent passes a function to child
+
+    Example - A product page passes an `addToCart` function to a product card. 
+
+- What React does by default
+
+    Every time parent re-renders: A new function is created. Child sees it as a new prop. 
+
+    Child re-renders. 
+
+    Even if logic didn't change. 
+
+- Why this is bad? 
+
+    Large product lists, Many child components, Performance issues. 
+
+**What `useCallback` does**
+
+- Stores the function in memory and reuses it unless dependencies change. 
+
+- So: Parent re-renders, Function reference stays same.
+
+    Child does NOT re-render. 
+
+- `useCallback` prevents unnecessary child re-renders by memoizing function references. 
+
+## React Rendering & Reconciliation 
+
+- Rendering = React calling our component functions to get JSX. 
+
+    What triggers rendering? 
+
+        State change, Props change, Context change 
+
+- Reconciliation = React comparing old UI with new UI. 
+
+    React: Creates Virtual DOM, Compares old vs new, Updates only cahnged nodes 
+
+    - Fast UI, Efficient updates 
+
+- Reconciliation is the process where React efficiently updates the DOM by comparing virtual DOM trees. 
+
+
+## Why do React Components re-render? 
+
+A component re-renders when: 
+
+- Its state changes
+- Its props (including context value) changes 
+- Its parent re-renders and passes new props 
+- Key changes for a list item
+
+
+## `React.memo`
+
+- `React.memo` is a higher-order component that: 
+
+    Prevents re-rendering if props haven't changed. 
+
+- Its like "if inputs are same, output is same - no need to re-run". 
+
+- React.memo memoizes a component based on props. 
+
+**`useMemo` Vs `React.memo`**
+
+- useMemo - data 
+- React.memo - compoent 
+- useCallback - function 
+
+
+
+## How do we know a component is re-rendering? 
+
+- A component re-renders when: 
+
+    Its state changes 
+    Its props change 
+    Its context value changes 
+    Its parent re-renders 
+
+    Re-render = component function runs again. 
+
+- React DevTools   
+
+    Components flash when they re-render 
+
+- React Profiler 
