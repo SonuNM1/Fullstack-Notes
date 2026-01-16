@@ -842,6 +842,17 @@ A component re-renders when:
 - useCallback - function 
 
 
+## useLayoutEffect 
+
+- `useLayoutEffect` is like `useEffect`, but: It runs synchronously after DOM updates but before the browser paints the screen. 
+
+    Render -> DOM updated -> useLayoutEffect -> Browser Paints -> useEffect 
+
+- Why do we need it? 
+
+    You must read or update DOM immediately before the user sees anything. 
+
+- `useLayoutEffect` runs synchronously before paint and is used for DOM measurements. 
 
 ## How do we know a component is re-rendering? 
 
@@ -859,3 +870,288 @@ A component re-renders when:
     Components flash when they re-render 
 
 - React Profiler 
+
+
+## Throttling Expensive UI Updates (Search/Scroll)
+
+- Throttling and Debouncing optimize frequent UI events like scroll and search. 
+
+- The Problem: Search input, Scroll events. 
+
+    They fire too quickly. 
+
+- Throttle: execute at fixed intervals 
+
+- Debounce: execute after user stops 
+
+- Real-life SEARCH (Debounce)
+
+    r → re → rea → reac → react
+
+    Only final search should run. 
+
+- Real-life SCROLL (Throttle)
+
+    Scroll event fires 100s times per second. 
+
+    Throttle to once every 200ms. 
+
+- How do we throttle/debounce in React
+
+    Use `setTimeout`, or `lodash`
+
+
+## Custom Hooks 
+
+- They are reusable functions that let us extract and share logic between functional components. 
+
+- They are JS functions whose names start with `use`.
+
+- Custom hooks should always start with `use`, like useFetch or useForm. 
+
+- Without custom hook ❌
+
+    useEffect(() => {
+        fetch("/api/products")
+            .then(res => res.json())
+            .then(data => setProducts(data)) ; 
+    }, [])
+
+    You write this everywhere. 
+
+- With custom hook ✅
+
+    // useFetch.js 
+
+    import {useEffect, useState} from "react" ; 
+
+    function useFetch(url){
+        const [data, setData] = useState(null) ; 
+
+        useEffect(() => {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => setData(data))
+        },[url])
+
+        return data
+    }
+
+    export default useFetch ; 
+
+- Usage: 
+
+    const products = useFetch("/api/products") ; 
+
+- Cleaner, reusable and easier to test 
+
+
+## Redux 
+
+- Redux is predictable state management library for React apps. 
+
+🔴 **Problem: Prop Drilling**
+
+    App
+    └── Navbar
+        └── CartIcon
+
+    Cart count needed everywhere. Passing props throgh many levels = messy & harder to maintain. 
+
+- Redux Solution: 
+
+    Central global store, Any component can access it, Predictable state updates and behaviour. 
+
+**Core Redux (SARD)**
+
+1. Store: Single source of truth. A big object that holds data. Global Memory. 
+
+    {
+        cart: {...}, 
+        auth: {...},
+        products: {...}
+    }
+
+2. Action: Plain object describing what happened 
+3. Reducer: Pure JS function that updates state 
+4. Dispatch: Send action to store 
+
+**Data flow in Redux**
+
+    UI -> dispatch(action) -> reducer -> store -> UI updates 
+
+**Why Redux is predictable**
+
+- Single store
+- One-way data flow 
+- Pure reducers 
+
+**When to use Redux**
+
+- Large apps
+- Shared global state
+- Complex updates 
+
+    In small apps, Context API is enough
+
+**Redux Flow**
+
+    Component
+        ↓ dispatch()
+    Action (auto-created by slice)
+        ↓
+    Reducer (inside slice)
+        ↓
+    Store
+        ↓
+    Component re-renders
+
+
+**Slice**
+
+- One slice = One feature 
+
+- Example: authSlice, cartSlice, productSlice, userSlice 
+
+    Cart feature -> cartSlice 
+    Auth feature -> authSlice 
+
+```js
+// cartSlice.js 
+
+// createSlice is a helper from Redux Toolkit
+// It helps us write Redux code easily
+import { createSlice } from "@reduxjs/toolkit";
+
+// This is the initial data for the cart feature
+// Think: "How should cart look when app loads?"
+const initialState = {
+  items: [],          // all products in cart
+  totalQuantity: 0    // total items count
+};
+
+// createSlice creates:
+// 1. reducer function
+// 2. action creators automatically
+const cartSlice = createSlice({
+  name: "cart",   // name of this slice (feature)
+  initialState,   // initial data
+  reducers: {
+    // This runs when we add a product
+    addToCart(state, action) {
+      // action.payload = product we send
+      state.items.push(action.payload);
+      state.totalQuantity++;
+    },
+
+    // This runs when we remove a product
+    removeFromCart(state, action) {
+      state.items = state.items.filter(
+        item => item.id !== action.payload
+      );
+      state.totalQuantity--;
+    }
+  }
+});
+
+// Export actions (used in components)
+export const { addToCart, removeFromCart } = cartSlice.actions;
+
+// Export reducer (used in store)
+export default cartSlice.reducer;
+```
+
+- What this file does: Stores cart data, Knows how to update (add, delete products) cart
+
+    One slice = one feature 
+
+
+
+**Store**
+
+- Connect all slices 
+
+```js
+// store.js
+import { configureStore } from "@reduxjs/toolkit";
+import cartReducer from "./cartSlice";
+
+// Store collects all slices
+const store = configureStore({
+  reducer: {
+    cart: cartReducer // cart slice goes here
+  }
+});
+
+export default store;
+```
+
+- Store now looks like this: 
+
+```js
+{
+  cart: {
+    items: [],
+    totalQuantity: 0
+  }
+}
+```
+
+
+**Provider**
+
+- Give store to react 
+
+```js
+import { Provider } from "react-redux";
+import store from "./store";
+
+<Provider store={store}>
+  <App />
+</Provider>
+```
+
+- Now every component can access cart data.
+
+
+**Using Redux in Components**
+
+- Add product to cart 
+
+```js
+import {useDispatch} from "react-redux" ; 
+import {addToCart} from "./cartSlice"
+
+const dispatch = useDispatch() ; 
+
+dispatch(addToCart(product)) ; 
+```
+
+- Read cart count 
+
+```js
+import {useSelector} from "react-redux"
+
+const cartCount = useSelector(
+    state => state.cart.totalQuantity
+)
+```
+
+**What happens step-by-step**
+
+1. Button clicked
+2. Dispatch sends action 
+3. Slice updates data
+4. Store updates 
+5. React re-renders UI
+
+**Mental model**
+
+- One slice = One feature 
+- One store = Whole app 
+- Dispatch = triggers change 
+- Selector = Read data 
+
+
+## Interview Questions - Redux 
+
