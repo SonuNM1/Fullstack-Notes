@@ -1066,6 +1066,23 @@ export default cartSlice.reducer;
     One slice = one feature 
 
 
+**Reducer**
+
+- Pure function that updates the state based on action. 
+
+- It specifies how the application's state changes in response to actions. 
+
+    It makes Redux predictable. 
+
+- A reducer takes 2 arguments: 
+
+    Current state - the existing state of your application 
+
+    Action - an object describing what happened
+
+    It returns a new state based on the action type. 
+
+    `(state, action) => newState`
 
 **Store**
 
@@ -1077,6 +1094,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import cartReducer from "./cartSlice";
 
 // Store collects all slices
+
 const store = configureStore({
   reducer: {
     cart: cartReducer // cart slice goes here
@@ -1096,7 +1114,6 @@ export default store;
   }
 }
 ```
-
 
 **Provider**
 
@@ -1154,4 +1171,412 @@ const cartCount = useSelector(
 
 
 ## Interview Questions - Redux 
+
+- Slice: feature-based collection of state, reducers and action in one file 
+
+    One slice = one feature 
+
+- Store: central place that holds the entire application state 
+
+- Action: plain object that describes what happened in the application 
+
+- Reducer: pure function that updates the state based on the action. 
+
+- dispatch: used to send actions from components to the Redux store 
+
+- `useSelector`: used to read data from the Redux store in a component. 
+
+- `useDispatch`: used to send actions to the Redux store 
+
+- `useReducer`: Uses a reducer function that takes state and action, then returns a new state. Helps keep state updates predictable and organized. 
+
+- Why can't reducers have API calls? 
+
+    Reducers must be pure functions and API calls cause side effects. 
+
+- Redux Thunk? 
+
+    is a middleware that allows async logic and API calls in Redux. 
+
+- `createAsyncThunk`
+
+    It simplifies async logic and automatically handles loading and error states. 
+
+## Pure Function 
+
+A pure function is a function that: 
+
+- Gives the same output for the same input 
+
+- Doesn't change anything outside itself 
+
+- Example 
+
+```js
+function add(a, b){
+    return a+b ; 
+}
+```
+
+    It will always return same output for the same input. It doesn't change anything else. 
+
+- Not pure example 
+
+    ```js
+    function getCurrentTime(){
+        return new Date() ;
+    }
+    ```
+
+    Same input -> different output every time. 
+
+
+## Redux Thunk 
+
+Redux expects: 
+
+- Same `state + action` -> same `newState`
+
+- No side effects 
+
+- Wrong reducer (NOT pure)
+
+```js
+    function reducer(state, action){
+        fetch("/api/data") ; // No API call
+        state.count++; // no mutation
+        return state; 
+    }
+```
+
+- Why bad? 
+
+    API call = side effect. Redux cannot predict state. 
+
+- This is where **Redux Thunk** comes in. 
+
+- API calls are asynchronous. 
+
+- Redux thunk allows us to dispatch functions instead of objects. 
+
+
+## Why Redux is synchronous by default 
+
+Redux was designed as a predictable state container. 
+
+    Key word: predictable 
+
+- That means: Given previous state, Given an action, Redux must immediately compute next state. 
+
+    `newState = reducerr(oldState, action)`
+
+    no waiting, no async, no side effects 
+
+- With API, Redux has no idea: when API finishes, what data comes back, how state will change later 
+
+    Redux loses control, State becomes unpredictable
+
+    Therefore, Redux reducers must be synchronous. 
+
+    API call = side effect. Depends on network, Can fail, Can be slow, Not deterministic 
+
+- Redux is synchronous by default to keep state updates predictable and traceable. 
+
+- Reducers must be: synchronous, pure, predictable. 
+
+
+## Why do we need Redux Thunk 
+
+- Redux only allowed 
+
+    `dispatch({type:"Action"})`
+
+    But API calls are async. 
+
+- Thunk allows this: 
+
+```js
+dispatch(async (dispatch) => {
+  const data = await fetch("/api");
+  dispatch({ type: "SUCCESS", payload: data });
+});
+``` 
+
+    Async logic -> Thunk. State updates -> Reducer 
+
+
+## What Redux Thunk actually is 
+
+- Redux Thunk is a middleware. Middleware sits between: 
+
+    `dispatch()` and the `reducer`
+
+- Thunk allows us to: 
+
+    delay dispatching an action. Performs async operations (API calls). dispatch multiple actions based on result. 
+
+    Instead of dispatching an action object, we can dispatch a function. 
+
+- Redux thunk allows dispatching functions instead of plain objects, enabling async logic like API calls before updating the store. 
+
+**Mental Flow**
+
+1. Component triggers an event
+2. Thunk runs async logic (API call)
+3. Based on result: dispatch success action, or dispatch failure action
+4. Reducer updates state asynchronously 
+
+- Async work outside reducer
+- State update inside reducer 
+
+
+## How React handles forms 
+
+- Default HTML form behaviour 
+
+```js
+<form>
+    <button type="button">
+        Submit 
+    </button>
+</form>
+```
+
+    Browser will: Submit form, Refresh page, Lose React state. 
+
+    Bad for SPA. 
+
+- `e.preventDefault()`
+
+```js
+function handleSubmit(e){
+    e.preventDefault() ; 
+}
+```
+
+    What it does? Stops browser's default behaviour, Prevents page reload, Allows React to handle form. 
+
+- What if we don't use `e.preventDefault()`
+
+    Page refresh, State lost, Redux store reset, Bad UX 
+
+
+## Zustand 
+
+Zustand is a lightweight state management library for React that uses hooks and a centralized store without boilerplate. 
+
+- It allows us to create global state using simple JS functions, without reducers, actions, or providers like Redux. 
+
+**Why Zustand exists**
+
+- Problems with Redux (that Zustand addresses)
+
+    Too much boilerplate (actions, reducers, slices)
+
+    Complex setup 
+
+    Harder learning curve
+
+    Overkill for small/medium apps 
+
+- Zustand goals
+
+    Minimal, No boilerplate
+
+    No provider wrapping
+
+    Fine-grained re-render control
+
+
+Zustand was created to simplify global state management by removing boilerplate and making state usage more intuitive. 
+
+
+| Feature        | Redux Toolkit | Zustand          |
+| -------------- | ------------- | ---------------- |
+| Boilerplate    | High          | Very low         |
+| Reducers       | Required      | ❌ Not needed     |
+| Actions        | Required      | ❌ Not needed     |
+| Middleware     | Yes           | Yes              |
+| Async handling | Thunks        | Built-in support |
+| Provider       | Required      | ❌ Not required   |
+| Learning curve | Steep         | Easy             |
+
+
+**Mental Model**
+
+- Redux mental model 
+
+    Action -> Reducer -> Store -> Component 
+
+- Zustand mental model 
+
+    Store -> hook -> Component 
+
+
+**Core Concepts of Zustand**
+
+Zustand has only 3 main ideas: 
+
+1. Store
+2. State 
+3. Actions (functions that update state)
+
+- No reducers
+- No providers 
+- No dispatch
+
+**How Zustand Store Works**
+
+We: 
+
+- create a store
+- store contains: state, functions to update state 
+- components read & update state directly 
+
+Zustand internally: 
+
+- tracks which state a component uses 
+- re-renders only when that part changes 
+
+**Example:**
+
+    In Zustand, a cart store would contain cart items and methods like `addItem` and `removeItem`. Components directly consume the store via hooks. 
+
+**Async Operations in Zustand**
+
+- Redux: needs thunk, middleware setup
+
+- Zustand: Async logic written directly inside store functions 
+
+    Zustand supports async actions, allowing API calls directly inside store functions without middleware. 
+
+    No restriction like "reducers must be pure"
+
+**When Zustand is PERFECT**
+
+- Medium apps
+- Dashboard apps 
+- Auth state
+- Cart state 
+- UI state 
+
+
+**Is Zustand replacing Redux?**
+
+No, Zustand is an alternative for simpler state management, while Redux is better for large-scale applications.
+
+**Does Zustand cause re-renders?**
+
+Only when the selected state changes, thanks to its subscription model. 
+
+**Subscription-based updates**
+
+- Redux/Context: Component re-renders when any state changes. 
+
+- Zustand: Component re-renders only when selected state changes. 
+
+    Zustand uses a subscription model where components only re-render when the selected state changes. 
+
+- Zustand eliminates reducers and action creators by allowing state updates directly through store functions. 
+
+
+## Why is the `key` prop important in React lists? 
+
+The `key` prop is important because it helps React efficiently manage list rendering. It allows React to identify which items have changed, been added, or removed, instead of re-rendering the entire list. 
+
+- Helps React track elements and update only what's necessary. 
+
+- Prevents unnecessary re-renders, improving performance. 
+
+- Best practice: Use a unique ID as the key instead of the array index whenever possible. 
+
+## Persisting data on Refresh
+
+When the browser refreshes: 
+
+- JavaScript memory is cleared 
+- React state is lost
+- Redux/Zustand in-memory store is reset 
+
+**Persistence** = saving important state outside JS memory so it survives refresh. 
+
+**Why persistence is needed?**
+
+Persistence is needed to maintain user experience and application continuity across page refreshes. 
+
+Real-life problems without persistence: 
+
+- User logged out on refresh, 
+- Cart emptied, 
+- Theme prefrence lost, 
+- Language lost 
+
+**What data should be persisted**
+
+Persist only essential & safe data. 
+
+| Data                 | Reason              |
+| -------------------- | ------------------- |
+| Auth token           | Keep user logged in |
+| User info (id, role) | Avoid refetch       |
+| Cart items           | E-commerce UX       |
+| Theme / language     | Preferences         |
+| Filters / pagination | UX continuity       |
+
+
+**How persistence works**
+
+1. App state changes 
+2. State saved to: localStorage, sessionStorage, cookies, IndexedDB
+3. On reload: state rehydrated into store 
+
+
+## Optimizing a slow React Application 
+
+To optimize a slow React application, first identify bottlenecks using profiling tools. Then reduce unnecessary re-renders using memoization techniques, optimize state management, apply code splitting, improve network performance, and ensure proper cleanup to avoid memory leaks. 
+
+Most performance issues in React are caused by unnecessary re-renders. 
+
+1. **Reduce unnecessary re-renders**
+
+Techniques: 
+
+- React.memo
+- useCallback
+- useMemo
+- Proper key usage 
+
+2. **Code splitting & lazy loading**
+
+Break the app's bundle into smaller chunks so the browser loads only what's necessary. 
+
+Lazy load: components only when they are needed, instead of loading everything upfront. 
+
+- Problem: large bundle, slow initial load 
+
+- Solution: React.lazy, Suspense
+
+3. **Optimize expensive computations**
+
+- Examples: filtering large lists, Sorting, Calculations 
+
+- Tools: useMemo, useCallback 
+
+4. **Optimizing lists & rendering**
+
+- Pagination 
+- Infinite scroll 
+
+5. **Optimize network calls**
+
+- Debounced search
+- Throttle scroll
+- Cache API responses 
+- Avoid duplicate requests 
+
+6. **Optimize assets**
+
+- Image compression
+- Lazy load images 
+- Use modern formats (webp)
 
