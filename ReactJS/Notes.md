@@ -1580,3 +1580,132 @@ Lazy load: components only when they are needed, instead of loading everything u
 - Lazy load images 
 - Use modern formats (webp)
 
+
+
+## Code Splitting 
+
+Code splitting means loading JavaScript only when it's needed, instead of loading the entire app at once. 
+
+- Without code splitting, large bundle, slow first load, poor performance on low-end devices. 
+
+- With code splitting, faster initial load, smaller JS chunks, better user experience. 
+
+- Commonly implemented using `React.lazy` and `Suspense`. 
+
+- **Profiling tools** like `React DevTools Profiler`, `Chrome DevTools`, and `Lighthouse` help identify performance bottlenecks before applying optimizations. 
+
+
+
+## `key` prop 
+
+- The `key` prop helps React identify list items across renders so it can update only what changed. 
+
+- React uses key for: Reconciliation, Efficient DOM updates, Preserving component states. 
+
+- A key should be: unique, stable, predictable 
+
+- Real world examples: Database `id`, product ID, User ID, Order ID, Email, UUID, Slug 
+
+
+**What happens if we use array index as key?**
+
+- Why index looks okay? 
+
+    It's available, it's unique per render. 
+
+- But it changes when: 
+
+    Items are added, items are removed, List is reordered. 
+
+- Problems caused by index as key
+
+    1. Wrong state association: input values move to wrong rows, Checkboxes gets mismatched, Component state breaks 
+
+    2. Unnecessary re-renders
+
+
+## Performance tips when rendering large lists in React 
+
+What is a large list? 
+
+- Hundreds or thousands of items (Tables, feeds, chats, logs, product lists)
+
+**Problems with large lists** 
+
+- React creates many DOM nodes
+- Browser layout & paint becomes slow 
+- Scrolling becomes laggy 
+- Re-renders are expensive 
+
+**Common performance techniques**
+
+1. Pagination 
+
+- Load 10-20 items per page 
+- Used in admin dashboards
+- Reduces DOM size 
+
+    Pagination limits DOM size by rendering data in chunks. 
+
+2. Infinite Scrolling 
+
+- Load items as user scrolls 
+- Used in feeds (Instagram, LinkedIn)
+
+    DOM still grows over time. 
+
+3. Memoization
+
+- `React.memo`
+- `useMemo`
+- `useCallback`
+
+    Used when: list items re-render unnecessarily. 
+
+
+4. **Virtualization**
+
+- `react-window`
+- `react-virtualized`
+
+- Virtualization means rendering only the visible items, not the entire list. 
+
+    Example: 10,000 items total. Only 10-20 visible on screen. React renders only those 10-20. 
+
+- Virtualization improves performance by rendering only visible list items instead of the entire dataset. 
+
+- `react-window` and `react-virtualized` are the libraries that implement list virtualization. 
+
+
+## React Fibre 
+
+- React Fibre is React's new reconciliation engine introduced in React 16. 
+
+**Why Fiber was introduced?**
+
+Before Fibre: 
+
+- React used stack reconciliation 
+- Rendering was blocking 
+- UI could freeze 
+
+    Fiber solved this. 
+
+**Core problem Fiber solves**
+
+Old React
+
+- Render entire tree in one go
+- No pause 
+- No priority 
+
+Fiber 
+
+- Breaks rendering into small units
+- Can pause & resume 
+- Can prioritize updates 
+
+
+- Reconciliation: Process of comparing old & new virtual DOM 
+
+- Fiber: Algorithm that performs reconciliation efficiently 
