@@ -101,3 +101,65 @@
         Developer pushes code > GitHub Actions builds Docker image > Pushes to Docker Hub > Server automatically pulls updated image > Deploys app 
 
         This is how zero-downtime deployments happen. 
+
+
+## Canary Releases 
+
+Releasing a new version to a small % of users first, before rolling it out to everyone. 
+
+- Canary releases matter because direct release = risk. 
+
+    Canary = controlled blast radius 
+
+- Canary releases reduce production risks by validating changes on a subset of users. 
+
+**Why Canary?**
+
+Like miners used canary birds to detect danger early. If something breaks: 
+
+- Only few users affected 
+- Roll back safely 
+
+- Example: 
+
+    1. New UI deployed
+    2. Only 5% users see it 
+    3. Monitor: errors, performance
+    4. If stable, increase to 100%
+
+
+**How it works?**
+
+- Feature flags 
+- User-based routing 
+- CDN / load balancer rules 
+
+Canary releases reduce risk by validating changes with a small user group before full rollout. 
+
+
+**Method 1 - Feature flags**
+
+A flag decided whether user sees: Old UI, New UI 
+
+1. User opens website
+2. Backend / config service decideds 
+
+    `isNewUIEnabled = true/false`
+
+3. Frontend checks flag
+4. Renders UI accordingly 
+
+**Method 2 - CDN/Load Balancer (Production-grade)**
+
+- CDN (CloudFlare/Akamai)
+- Route 5% traffic to new build 
+- 95% to old build 
+
+```
+User → CDN → UI v1 (95%)
+           → UI v2 (5%)
+```
+
+- Traffic splitting is handled at CDN or load balancer level. 
+
+
