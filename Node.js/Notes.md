@@ -14,7 +14,7 @@
 
 - type "commonjs": This is the older Node.js module system. Not the modern JavaScript standard. 
 
-    Not idea for modern bundlers and frontend code sharing 
+    Not ideal for modern bundlers and frontend code sharing 
 
 - type "module": Modern JavaScript module system. You enable it by adding this in package.json 
 
@@ -160,3 +160,49 @@ On production, always use HTTPS. If "secure:false", your token could be stolen.
 
 - Password Validation
 
+
+## Node.js Features 
+
+- Single-threaded
+- Non-Blocking, Asynchronous I/O
+- Cross Platform
+- V8 Engine 
+- Event driven architecture 
+- Real-time data handling 
+- Libuv 
+
+
+## REST API as an Architectural Pattern
+
+REST (Representational State Transfer) is an architectural style for designing networked applications using HTTP. 
+
+**Core Principles of REST**
+
+1. Client-Server separation
+2. Statelessness
+3. Resource-based URLs
+
+    ```http
+    /users
+    /users/1
+    ```
+
+4. HTTP methods: GET, POST, PUT/PATCH, DELETE 
+
+**Other API Architecture Patterns apart from REST**
+
+1. SOAP: XML-based, Very strict, Heavy, Used in legacy enterprise systems 
+
+2. GraphQL: Client decides what data it needs 
+
+    Solves over-fetching and under-fetching. 
+
+3. gRPC: Binary protocol, Fast, Uses HTTP/2, used in Microservices. 
+
+4. WebSockets APIs: full-duplex communication, Real-time data, Chat and live updates 
+
+5. Event-Driven APIs: Communication via events, Kafka, RabbitMQ 
+
+    Producer -> Broker -> Consumer 
+
+    

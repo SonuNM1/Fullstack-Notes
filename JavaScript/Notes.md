@@ -1145,3 +1145,67 @@ Browser events like: scroll, resize, keypress, mousemove .. can fire hundreds of
     Mouse movement 
 
 - Throttling limits function execution to once per specified time interval. 
+
+
+## JavaScript Execution order 
+
+1. Call Stack (runs synchronous code)
+2. Microtask Queue (Promises)
+3. Macrotask Queue (setTimeout, setInterval)
+
+- After synchronous code finishes, All microtasks run first, then macrotasks. 
+
+
+**Why Promises are Microtasks & timers are Macrotasks**
+
+It's a priority made by JavaScript. 
+
+- JavaScript wanted a way to say: "Some async tasks are more important than others and must run immediately after current code."
+
+    So the event loop was designed with two queues. 
+
+- Macrotasks (Low priority - big tasks)
+
+    Examples: `setTimeout`, `setInterval`, `setImmediate`, DOM events, I/O callbacks 
+
+    They are macrotasks (big tasks) because: they may involve OS timers, they may involve I/O, they can be delayed, they are not critical to run immediately 
+
+- Microtasks (High priority - small but urgent)
+
+    Example: `Promise.then`, `catch`, `finally`
+
+    They are micro because they are small, fast; they must run before anything else; they are used to finish logic that just started. 
+
+- Afte executing synchronous code, the event loop always empties the microtasks queue completely before moving to the macrotask queue. 
+
+
+## Polyfill
+
+A polyfill is JavaScript code that adds missing features to older browsers so that modern JS methods work everywhere. 
+
+**Why polyfills exist**
+
+- JS evolves (ES6, etc...)
+- Old browsers don't support newer methods
+- Polyfill = manual implementation 
+
+**Problem in real world?**
+
+- JavaScript evolves every year 
+- Browsers update at different speeds 
+- Some users still use old browsers 
+
+- Example: Chrome supports `Array.prototype.map`, Old IE does not 
+
+    Now: `arr.map(...)` - Works on our machine, breaks on user's browser. App crashes, business loss 
+
+- So, a polyfill is a backup implementation of a feature that the environment doesn't support. 
+
+**Example: Polyfill map**
+
+1. Create empty result 
+2. Loop over array (this)
+3. Call callback
+4. Push conditionally 
+5. Return result 
+

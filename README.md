@@ -153,3 +153,6 @@
 - Build and Deploy a Node.js App on AWS EC2 - Docker/GitHub Actions/CI-CD Pipelines 
 
 - Redis Pub/Sub
+
+- frontend interview js snippets, console output questions, Event loop traps, Promise vs timeout puzzles 
+

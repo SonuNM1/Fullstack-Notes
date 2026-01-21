@@ -52,3 +52,6 @@
 
 
 ## rel="noopener"
+
+
+## async Vs. defer 
