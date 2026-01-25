@@ -131,6 +131,8 @@ The thread pool is a set of worker threads managed by libuv that execute blockin
 
     These tasks are sent to the thread pool. 
 
+    Not all tasks can be handled directly by the operating system in a non-blocking way. Some tasks block the thread while executing, so Node.js must move them to a thread pool. 
+
 **How it works**
 
 1. JS code hits an async task: 
@@ -203,3 +205,60 @@ What crypto is used for:
 - Secure random tokens 
 
 - Crypto module provides cryptographic functionality for secure data handling.
+
+
+
+
+## Thread Pool Starvation 
+
+When all thread pool threads are busy, new tasks must wait, causing delays. 
+
+**Why it happens**
+
+- Default thread pool size = 4 
+- Too many operations like: 
+
+    `fs.readFile`, `bcrypt.hash`, compression, DNS lookups, Compression (involves CPU-heavy computation, so Node executes it in the libuv thread pool)
+
+    All compete for limited threads. 
+
+    Only 4 run at once, Others wait and performance drops 
+
+- Thread pool starvation occurs when long-running tasks occupy all worker threads, delaying execution of other async operations. 
+
+**How to prevent it**
+
+- Avoid CPU-heavy work in Node
+- Increase thread pool size 
+- Use worker threads 
+- Offload work to separate services 
+
+
+**Why CPU-heavy tasks are bad in node.js**
+
+- Node executes JS on one main thread 
+
+- CPU-heavy JS: blocks event loop, delays all other requests 
+
+- Examples: Image processing, Video encoding, Big JSON parsing, Encryption loops 
+
+**How to handle CPU-heavy work**
+
+- Worker threads
+- Background jobs
+- Separate microservices 
+
+
+
+## Avoiding CPU-Heavy work in Node.js - What does it actually mean? 
+
+
+CPU-heavy work = long calculations 
+
+- Examples: Image resizing, Video encoding, PDF generation, Password hashing in bulk
+
+- Why not inside Node main thread? 
+
+    Blocks event loop, All requests wait, App becomes unresponsive 
+
+
