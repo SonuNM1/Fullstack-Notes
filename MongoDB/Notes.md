@@ -418,6 +418,8 @@ DELETE FROM users WHERE age < 18 ;
 
     `db.users.find({email: "sonu@gmail.com"}).explain("executionStats")`
 
+- explain() shows how MongoDB runs your query, not the data. 
+
 3. Limit returned data 
 
     `db.users.find({}, {name: 1, email: 1})`
@@ -430,3 +432,6 @@ DELETE FROM users WHERE age < 18 ;
 5. Use pagination 
 
     `db.users.find().limit(10).skip(20)`
+
+
+## Migrating Data from SQL to MongoDB 
