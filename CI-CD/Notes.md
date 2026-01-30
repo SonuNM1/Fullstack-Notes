@@ -286,4 +286,64 @@ NGINX reverse proxy solves that
 `docker push my-app:latest`
 
 
+## Why companies AVOID auto-deploy 
+
+- Auto-deploy means: 
+
+    `Push code -> instantly live to users`
+
+    Sounds good, but reality is following: 
+
+- Tests are never perfect 
+
+    Payment bugs, data loss bug
+
+- Business risk 
+
+    Black friday, live traffic, legal impact 
+
+- Human approval needed 
+
+    Product manager, QA, Ops 
+
+    CI -> automatic 
+    CD -> manual approval 
+
+
+
+- CI/CD is a process that automates testing and delivery of code. 
+
+    Continuous Integration ensures that code is automatically tested and validated whenever it's pushed, while Continuous Delivery or Deployment prepares or releases that code to production in a reliable way. 
+
+**How does CI work in real projects?**
+
+In CI, whenever a developer pushes code to Git, a CI tool like GitHub Actions pulls the code, installs dependencies, run tests, linting and build steps. 
+
+If any step fails, the pipeline fails and the code is not promoted further. 
+
+**What kind of tests run in CI?**
+
+Primarily unit and integration tests. 
+
+- Unit tests validate individual functions or services, while integration tests ensure APIs, databases, and services work together. 
+
+- In projects without tests, CI still runs build and lint checks to catch syntax or compilation issues .
+
+**What is CD then?**
+
+After CI passes, Continuous Delivery prepares the application for release - often by building a Docker image and pushing it to a registry. 
+
+- Deployment may still require manual approval, especially for production, to reduce risk. 
+
+**Why not auto-deploy everything?**
+
+Because tests are never perfect. 
+
+- Auto-deployment can introduce production outages, especially in critical systems. 
+
+- Most companies prefer controlled releases with approvals for safety and rollback capability. 
+
+**Have you worked with CI/CD ?**
+
+Yes, I've worked with GitHub Actions where we defined pipelines to install dpeendencies, run tests, build the application, and ensure code quality before merging. 
 
