@@ -1,3 +1,35 @@
+### What is Node.js? 
+
+Node.js is a JavaScript runtime environment built on the V8 JavaScript engine that allows JavaScript code to run outside the browser. 
+
+**Why was Node.js created?**
+
+Before Node.js: JavaScript -> Only Browser 
+
+You could: manipulate DOM, handle events, Make API calls, 
+
+    but couldn't build backend applications. 
+
+Node.js enabled: JavaScript -> backend development 
+
+Now JavaScript can: read files, connect databases, create servers, handle HTTP requests
+
+Therefore, Node.js = environment that runs JavaScript outside browser 
+
+- Running JavaScript outside the browser means executing JavaScript without a browser environment. 
+
+    Node.js provides a runtime environment that allows JavaScript to interact directly with the operating system and build server-side applications. 
+
+### What is Express.js? 
+
+Express.js is a lightweight web application framework built on top of Node.js that simplifies server-side development and API creation.  
+
+- Express provides: Routing, Middleware, Error handling, request parsing, cleaner APIs 
+
+- Node.js -> Engine, Express.js -> Framework 
+
+- Express.js is a Node.js framework that simplifies the development of web applications and REST APIs by providing features such as routing, middleware, request handling and error management. 
+
 ### dependencies Vs. devDependencies 
 
 - dependencies: used in production. These packages are required for your application to run. 
@@ -24,6 +56,26 @@
 
     supports browser + server code consistency 
 
+- CommonJS is the traditional module system used by Node.js that uses `require()` for importing modules and `module.exports` for exporting them. 
+
+    JavaScript later introduced: ES Modules 
+
+    ES modules are the standard JavaScipt module system that uses `import` and `export` syntax for module management. 
+
+**Why Did ES Modules Come?**
+
+CommonJS worked. But JavaScript wanted: One standard module system, that works in: Browser, Node.js both. 
+
+- The problem was Node.js was built around: require(), module.exports (CommonJS)
+
+    JavaScript introduced: import, export (ES Modules)
+
+**Why do most modern projects use ES module?**
+
+Because: modern standard, better tooling, browser compatible, clear syntax 
+
+
+
 ## curl 
 
 - It's a command-line tool used to make network requests. Think of it like a browser without a GUI.
@@ -42,12 +94,55 @@
 
 ## req.body, req.params , req.query
 
+- **req.body:** contains data sent in the request body and is typically used for creating or updating resources in POST, PUT or PATCH requests. 
+
+ - contains data sent inside the HTTP request body and is primarily used when creating or updating resources 
+
+- **req.query:** contains query string parameters from the URL and is commonly used for filtering, sorting, searching and pagination. 
+
+ - contains query string parameters sent after the question mark (?) in the URL
+
+ - used for filtering, searching,, sorting and pagination 
+
+- **req.params:** contains route parameters extracted from the URL path and is generally used to identify a specific resource such as a user ID or product ID. 
+
+ - It's used to identify a specific resource being requested. 
+
+ - req.params is used to capture dynamic values from the URL path. It's commonly used for resource identifiers such as user IDs, product IDs, and order IDs. 
 
 ## Middleware 
 
 - middleware functions sit in between the request and the final route handler. 
 
+- Middlware is a function that executes between receiving a request and sending a response.
+
+    It can access the request object, response object, and the next middleware function in the application flow. 
+
+- Middleware is needed in: Authentication, Logging, Validation, Error handling 
+
+- Middleware allows: common logic -> write once -> reuse everywhere 
+
 - A middleware must call next() to tell Express: I am done here. Pass control to the next middleware or the final route. 
+
+- **next()** is a function that passes control to the next middleware or route handler in the request-response cycle. 
+
+There are 3 types of middleware 
+
+1. Application middleware - runs for all routes 
+
+    `app.use(logger)`
+
+2. Route middleware - runs only for specific routes 
+
+```js
+app.get(
+  "/users",
+  authMiddleware,
+  controller
+);
+```
+
+3. Error middleware - handles errors 
 
 **What if we DON'T use next()?**
 
@@ -57,6 +152,21 @@
 - the request will eventually timeout 
 
 
+### Why Order of Middleware matters?**
+
+- Middleware executes: top to bottom 
+
+- Middelware executes sequentially in the order it is registered. Therefore, changing the order changes the request processing flow and can affect application behaviour. 
+
+- Middleware executes sequentially. Meaning: Top -> Bottom, exactly in the order written. 
+
+- Middleware in Express executes in the same order in which it is registered. Each incoming request passes through the middleware chain sequentially. 
+
+    Therefore, the position of a middleware determines whether it executes before or after a route handler. If a route sends a response before a middleware is erached, that middleware will never execute for that request. 
+
+- Middelware order matters because Express processes middleware sequentially from top to bottom. 
+
+    A middleware can only execute if the request reaches it. Therefore, important middleware such as authentication, validation and logging should be registerd before the route handlers that depend on them. 
 
 ## Why do we always use Express with Node.js? 
 
@@ -90,14 +200,246 @@
     mongodb+srv://username:password@cluster0.abcde.mongodb.net/Zomato?retryWrites=true&w=majority
 
 
+### V8 Engine 
+
+V8 is Google's JavaScript engine that executes JavaScript code by converting it into optimized machine code. 
+
+**Why do we need V8?**
+
+Computer understands: Machine code. But we write: `console.log("Hello")`. Someone must convert JavaScript into something the CPU understands. 
+
+    That's V8's job. 
+
+- JavaScript -> V8 Engine -> Machine code -> CPU executes   
+
+**Relationship between Node andn V8**
+
+Node.js -> uses -> V8 Engine. 
+
+Node itself isn't the engine. Node uses V8 to execute JavaScript. 
+
+- V8 is Google's JavaScript engine used by Node.js and Chrome. It executes JavaScript by converting it into optimized machine code using Just-In-Time (JIT) compilation technique. 
+
+### What is "Optimized Machine Code"?
+
+We already know: JavaScript -> Machine Code -> CPU Executes 
+
+- Now imagine: 
+
+```js
+for(let i=0;i<1000000;i++) {
+  console.log(i);
+}
+```
+
+    A naive conversion would work. But V8 notices: This code runs very frequently. and tries to generate: **Faster Machine code**, instead of just: **Machine code**
+
+- What Does Optimization mean? 
+
+    Optimization means: generating machine code that executes faster and uses resources more efficiently. 
+
+- Example: Suppose - 
+
+```js
+function add(a, b) {
+    return a + b; 
+}
+```
+
+and V8 observes: 
+
+```js
+add(10,20);
+add(30,40);
+add(50,60);
+```
+
+for thousands of calls. It notices: a is always number, b is always number. Now V8 can generate specialized machine code optimized for numbers. 
+
+Instead of checking: 
+
+```js
+Is a string?
+Is a boolean?
+Is a number?
+```
+
+every time. 
+
+**Relation between JIT and Optimization**
+
+- Without JIT: JavaScript -> Compile Once -> Run. 
+
+    Compiler doesn't knnow how your code behaves. 
+
+- With JIT: 
+
+    Run code -> Observe behaviour -> optimize hot code -> generate faster machine code 
+
+- That's why JIT exists. It compiles: `Just In Time` while the application is running. So it can make smarter optimizations. 
+
+- V8 initially executes JavaScript and observes runtime behaviour. Frequently executed code paths are then compiled into optimized machine code using JIT compilation, resulting in faster execution. 
+
+**What is `Hot Code`?**
+
+Hot code refers to code paths that are executed frequently during runtime. 
+
+- Example: 
+
+```js
+function add(a, b){
+    return a+b; 
+}
+```
+
+Suppose: 
+
+```js
+add(1,2);
+add(3,4);
+add(5,6);
+```
+
+runs: a lot of times, during application execution. 
+
+- V8 observes - this function is being called repeatedly, and marks it as: `Hot code`
+
+- Now V8 thinks: instead of executing this normally, let me optimize it, and generates: `Optimized Machine Code` for that specific function. 
+
+- Hot code: runs repeatedly
+
+- Optimizing rarely executed code (cold code) is wasteful. Optimizing: frequently executed code - gives performance gains. 
+
+- **Hot code** refers to frequently executed code paths. The V8 engine monitors runtime behaviour and applies additional optimizations to hot code in order to improve execution performance. 
+
+
+### express.json() middleware 
+
+express.json() is a built-in middleware that parses incoming JSON request bodies and makes the data available inside req.body. 
+
+**Why do we need it?**
+
+Client sends: 
+
+```js
+{
+  "name": "Sonu",
+  "email": "abc@gmail.com"
+}
+```
+
+Without: `app.use(express.json())`
+
+Express receives: `req.body` as `undefined` because Express cannot automatically understand raw JSON. 
+
+**What express.json() does**
+
+Request: 
+
+```js
+{
+    "name": "Sonu"
+}
+```
+
+express.json(): Raw JSON -> JavaScript Object -> req.body 
+
+- `express.json()` is a middleware that parses incoming JSON payloads from the request body and converts them into JavaScript objects, making them accessible through req.body 
+
+
+### Request Parsing 
+
+- Request parsing is the process of converting incoming request data into a format that can be easily used by the application. 
+
+Client data -> Parser middleware -> JavaScript object 
+
+### JWT (JSON Web Token)
+
+JWT is used for securely transmitting user identity (authetnication) and authorization information between client and server. 
+
+- JWT uses: Base64URL Encoding. 
+
+**Structure of JWT**
+
+JWT has 3 parts: Header, Payload, Signature 
+
+1. Header - purpose is which algorithm was used, which token type. 
+
+    The header contains metadata about the token, including the signing algorithm and token. 
+
+2. Payload - contains actual data 
+
+    Purpose: User information, claims, authorization data
+
+    The payload contains claims or information about the user, such as user ID, email, role and token expiration time.  
+
+    **Claims:** are pieces of information stored inside the JWT payload that describe the user or token. They are key-value pairs stored in the JWT payload that contain information about the user or token, such as user ID, role, email or expiration time. 
+
+    ```js
+    {
+        "userId": "123",
+        "email": "abc@gmail.com",
+        "role": "admin"
+    }
+    ```
+
+3. Signature - created using: Header + Payload + Secret Key 
+
+    Purpose: Detect tampering, verify authenticity. 
+
+    If someone changes the token, signature becomes invalid. Server rejects token 
+
+    The signature is generated using the header, payload, and a secret key. It ensures token integrity and verifies that the token has not been modified. 
+
+- Header = how token was created (metadata about token - algorithm and token type)
+
+- Paylod = what token contains (actual data/user information)
+
+- Signature = verify token is genuine (detects tampering)
+
+**JWT Flow**
+
+Login: User login -> Server validates user -> Server creates JWT -> JWT sent to client 
+
+Next Request: Client sends JWT -> Server verifies signature -> User authenticated 
+
+**Is JWT Encrypted?**
+
+No. JWT is Base64 encoded, not encrypted. Anyone can decode the header and payload, but they cannot modify them without invalidating the signature. 
+
+### Encoding vs Encryption 
+
+Many developers think: JWT = `Encrypted`. Wrong. JWT is: `Encoded`. Not encrypted. 
+
+**Encoding:**
+
+- Purpose: Data Transformation, not security
+
+- Can anyone decode it? Yes. Very easily. 
+
+- Encoding is used for: Transport, Storage, Formatting 
+
+**Encryption:**
+
+- Purpose: Hide data 
+
+- Can someone read it? No. Unless they have: Decryption key
+
+- JWT is encoded. JWT: `Header.Payload.Signature` uses: `Base64URL Encoding`
+
+- Anyone can decode: Header, Paylod and read them. 
+
+**Then Why is JWT Secure?**
+
+- Because of `Signature` not because of encoding. 
+
+- If any attacker changes the `header` and `payload`, `Signature` becoms invalid. Server rejects them. 
+
+Therefore, JWT is not encrypted by default. The `header` and `payload` are `Base64URL encoded`, which means they can be decoded and read by anyone. Security is provided by the signature, which prevents unauthorized modification of the token. 
+
 ## Why does Mongoose pluralize the model name? 
 
-
-## express.json() middleware 
-
 ## JWT TOken generator 
-
-## Base64
 
 ## What is NODE_ENV? 
 
@@ -171,16 +513,101 @@ On production, always use HTTPS. If "secure:false", your token could be stolen.
 - Real-time data handling 
 - Libuv 
 
+#### Node.js: Single-threaded, Non-Blocking, Asynchronous I/O
+
+- Node.js executes JavaScript code on a single main thread, meaning only one piece of JavaScript code can execute at a time. 
+
+- **Single threaded** means: one JS instruction at a time. 
+
+- **Non-Blocking** means: Node.js doesn't wait for long-running operations such as file reads, database queries, or network calls to complete before continuing execution. 
+    
+    Non-blocking means Node.js can initiate an operation and continue processing other tasks without waiting for that operation to finish. The result is handled asynchronously when the operation completes. 
+
+**Asynchronous I/O**
+
+- I/O means: Input/Output. Anything involving communication with something external. 
+
+ Example - File system, Database, Network, API Calls 
+
+- Asynchronous I/O means input/output operations are executed without blocking the main thread, allowing other tasks to continue while waiting for the operation to complete. 
+
+**Cross platform** means Node.js applications can run on multiple operating systems without requiring code changes. 
+
+- Example: Write - `console.log("Hello")`
+
+    Run on: Windows, Linux, macOS - Same code. No changes. 
+
+- Without cross-platform support, we might need: Windows version, Linux version, macOS version - of the application 
+
+- Node.js is cross-platform because the same JavaScript application can run on different operating systems such as Windows, Linux, and macOS without notification. 
+
+
+### Event-Driven Architecture 
+
+Event-driven architecture is a programming model in which the flow of the application is determined by events. When an event occurs, a corresponding event handler or callback is executed. 
+
+- Event: it simply means - something that happened 
+
+- Examples: button clicked, HTTP request arrived, File read completed, Database query completed, Timer expired
+
+    Event happens -> Run Handler 
+
+- The application reacts to events. 
+
+**Why is Node called event-driven?**
+
+Because Node spends most of its life: Waiting for events, such as: HTTP requests, File completion events, Database completion events, timer events; and reacts when they occur. 
+
+**Why is event-driven architecture useful?**
+
+1. Better Resource Utilization - Instead of: wait, wait and wait. Node does: wait for event -> handle event -> wait again 
+
+2. High Concurrency - Thousands of requests can be managed because Node isn't blocked waiting. 
+
+3. Suitable for I/O heavy applications - used in chat applications, APIs, Streaming services, Real-time systems
+
 
 ## REST API as an Architectural Pattern
 
 REST (Representational State Transfer) is an architectural style for designing networked applications using HTTP. 
 
+- REST API is used for communication between frontend and backend. 
+
+    A REST API allows clients and servers to communicate using standard HTTP methods and resources. 
+
+**Problem Statement**
+
+- Suppose frontend wants user data. 
+
+    Frontend: Need user information. 
+    
+    Backend: Has user information
+
+    Now, need a standard way to communicate. That's where API comes in. 
+
+**What does REST say?**
+
+- REST says: Everything should be treated as a resource.
+
+- Examples - Users, Products, Orders, Employees. 
+
+    These are resources. 
+
+**Why is it called REST?**
+
+- REST is not: library, framework, technology. It's a design style or architectural style, for designing APIs.  
+
 **Core Principles of REST**
 
-1. Client-Server separation
+1. Client-Server Architecture: Frontend and backend should be separate. 
 
-2. Statelessness
+    React -> REST API -> Node Backend 
+
+2. Stateless: Every request should contain all information required to process it. 
+
+    Server shouldnt remember previous requests. Every request carries its own information 
+
+    Stateless means the server doesn't store client-specific information between requests. Every request must contain all information necessary for authentication and processing, making each request independent and easier to scale. 
 
 3. Resource-based URLs: In REST, URLs represent resources (nouns), not actions (verbs)
 
@@ -191,21 +618,27 @@ REST (Representational State Transfer) is an architectural style for designing n
 
 4. HTTP methods: GET, POST, PUT/PATCH, DELETE 
 
-**Other API Architecture Patterns apart from REST**
+## Are there other API architectures besides REST? 
 
-1. SOAP: XML-based, Very strict, Heavy, Used in legacy enterprise systems 
+Yes. REST is not the only way. 
 
-2. GraphQL: Client decides what data it needs 
+    The most common are: REST, GraphQL, gRPC, SOAP, WebSockets 
 
-    Solves over-fetching and under-fetching. 
+1. REST - Server decides: What data to return 
 
-3. gRPC: Binary protocol, Fast, Uses HTTP/2, used in Microservices. 
+2. GraphQL - is a query language for APIs that allows clients to request exactly the data they need. 
 
-4. WebSockets APIs: full-duplex communication, Real-time data, Chat and live updates 
+3. gRPC - used heavily in: Microservices, high performance systems, Google, Uber, Netflix. 
 
-5. Event-Driven APIs: Communication via events, Kafka, RabbitMQ 
+    Uses: Protocol buffers, instead of JSON. 
 
-    Producer -> Broker -> Consumer 
+    Faster than REST. 
+
+4. SOAP - Old enterprise standard. Uses: XML. 
+
+    Mostly seen in: Banks, Government systems, Legacy enterprise apps 
+
+5. WebSockets 
 
 ## Microservices Architecture 
 
@@ -247,7 +680,6 @@ Object Relational Mapping. A technique that maps database tables to JavaScript o
 
 ## Event-driven Programming 
 
-
 - Event-driven programming is a paradigm where the flow of the program is determined by events such as user actions, I/O completions, or messages. 
 
 - In Node.js: Requests, File read completion, Timers, WebSocket messages 
@@ -269,6 +701,8 @@ Object Relational Mapping. A technique that maps database tables to JavaScript o
 
 - JavaScript normally works with strings & objects. Node.js deals with files, streams, etc. These are binary, not text -> Buffer is needed. 
 
+- Buffer is a temporary memory area used by Node.js to store and manipulate binary data. 
+
 **Why Buffer exists**
 
 JavaScript originally had no way to handle binary data. 
@@ -279,9 +713,41 @@ JavaScript originally had no way to handle binary data.
 
 - Buffer allows Node.js to work with binary data. 
 
+- JavaScript was originally designed for browserss. It primarily included: String, Number, Boolean, Object, Array. 
+
+    But backend applications need to work with - Images, Videos, PDFs, Audio Files, Network packets. 
+
+    These are: `Binary data`, not normal JavaScript strings. 
+
+    Node introduced: `Buffer` to handle binary data efficiently. 
+
+- Buffer -> Temporary memory container for binary data. 
+
+- Example: Suppose user uploads - resume.pdf 
+
+    Node cannot instantly load entire file into a string. Instead: 
+
+        File -> Buffer -> Process Data 
+
+**Relation between Buffer and Streams**
+
+Suppose: 5 GB video. Bad approach: Load entire file into memory. 
+
+    Memory explodes. 
+
+- Node does: File -> Small Buffer -> Process -> Next Buffer -> Process 
+
+    This is how streams work. 
+
+- Streams use buffers internally to process data in smaller chunks instead of loading the entire data into memory. 
+
+- Streams internally use buffers to process data chunk by chunk rather than loading everything into memory. 
+
 ## Streams 
 
-A stream is a way to process data piece by piece, instead of all at once. 
+- A stream is a way to process data piece by piece, instead of all at once. 
+
+- A stream is a mechanism in Node.js that allows data to be processed incrementally in small chunks instead of loadinng the entire data into memory at once. 
 
 **Why do Streams exist?**
 
@@ -294,28 +760,54 @@ Solution:
 
 - Process data in chunks 
 
+- Suppose we have: movie.mp4 -> 5 GB 
+
+    Without Streams: read entire file -> Store 5 GB in memory -> Process file 
+
+    Problems: Huge memory usage, slow startup, poor performance 
+
+    Stream Solution: Read small chunk -> Process chunk -> Read next chunk -> Process Chunk 
+
 **How do Streams work?**
 
 1. Data is split into small chunks 
 2. Each chunk is a Buffer
 3. Chunks are processed as they array 
 
-`File -> [Buffer][Buffer][Buffer] -> App`
+- File: 5 GB video 
+
+    Node: Video -> Chunk 1 -> Chunk 2 -> Chunk 3 -> Chunk 4. Each chunk is stored in: `Buffer`
 
 **Buffer + Stream Relationship**
 
 - Stream = flow of data
 - Buffer = single chunk of data 
 
-
 - Streams allow Node.js to handle large data efficiently by processing it in chunks using buffers, instead of loading it all in the memory directly.
 
 **Types of Streams**
 
-- Readable (read data)
-- Writable (write data)
-- Duplex (Read + Write)
-- Transform (modify data)
+- Readable Stream - read data 
+
+    Examples: Read file, Read HTTP request, Read network data 
+
+- Writable Stream - write data 
+
+    Examples - Write file, Send HTTP response 
+
+- Duplex Stream - can read and write 
+
+    Example - TCP Socket, WebSocket 
+
+- Transform Stream - Read + Modify + Write 
+
+    Example - Compression + Encryption + Decryption (like Zip file)
+
+**Stream events**
+
+Streams are event-driven. When chunk arrives: `data event` fires. 
+
+    Chunk arrives -> data event -> callback executes 
 
 
 **Real-life problem Streams solve**
