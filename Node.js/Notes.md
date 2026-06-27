@@ -407,6 +407,85 @@ Next Request: Client sends JWT -> Server verifies signature -> User authenticate
 
 No. JWT is Base64 encoded, not encrypted. Anyone can decode the header and payload, but they cannot modify them without invalidating the signature. 
 
+**What does `JWT Is Self-Contained` mean?**
+
+A self-contained token is a token that contains all the information required for authentication and authorization within the token itself. 
+
+- A JWT can contain: 
+
+```js
+{
+  "userId": "123",
+  "email": "sonu@gmail.com",
+  "role": "admin"
+}
+```
+
+    Now, when request comes: `Authorization: Bearer JWT_TOKEN`. Server can read: User ID, Role, Email - directly from token. 
+
+    No database lookup may be needed for basic authorization. That's why JWT is called: `Self Contained` - because the token carries information about the user. 
+
+- JWT is self-contained because it stores user-related claims and metadata within the token, allowing the user to verify and identify the user without maintaining session data. 
+
+## What does JWT Authentication is `Stateless` mean?
+
+- Stateful: Server Remembers, Stateless: Request remembers
+
+JWT authentication is stateless - because the server does not store user session information between requests. Every request contains all information required for authentication. 
+
+**Session-based authentication**
+
+- Traditional approach: Login - 
+
+    User logs in -> Server creates session -> Stores session in memory 
+
+- Request: `GET /profile`
+
+    Server checks: Session storage - to identify user. 
+
+    Server remembers user. This is: `Stateful`
+
+**JWT Authentication**
+
+- Login: User logs in -> JWT Generated -> Client stores JWT 
+
+- Request: 
+
+    ```js
+        GET /profile
+        Authorization: Bearer JWT
+    ```
+
+    Server: Verify JWT - and identify user. No session storage. No memory lookup. No remembering. 
+
+    Every request contains: Authentication information - already. 
+
+    That's: Stateless 
+
+## Why was JWT created? If we had Session-based authentication**
+
+Because sessions create scaling problems. Supppose: Server 1, Server 2, Server 3, Server 4 
+
+- User logs in. Session stored in: Server 1 
+
+- Next request goes to: Server 3 
+
+- Problem: Server 3 doesn't have session. 
+
+- Now you need: Shared session store. Usually: Redis database 
+
+- Architecture becomes: Request -> Server -> Redis session lookup - for every request 
+
+**JWT Solves This**
+
+- Request: `Authorization: Bearer JWT`
+
+- Any server can process it: Server 1, Server 2, Server 3 - all understand the token. Now shared session storage. 
+
+    That's why JWT became popular. 
+
+- JWTs are stateless and scale better in distributed environments because no session storage is required. 
+
 ### Encoding vs Encryption 
 
 Many developers think: JWT = `Encrypted`. Wrong. JWT is: `Encoded`. Not encrypted. 
@@ -821,9 +900,41 @@ Streams are event-driven. When chunk arrives: `data event` fires.
 
 ## Crypto module 
 
-- Real-world needs: Password hashing, Data encryption, Token signing, Secure communication
+- The Crypto module is a built-in Node.js module that provides cryptographic functionality such as: hashing, encryption, decryption, digital signatures, and secure random value generation. 
 
     Never store passwords as plain text. 
+
+### Why do we need Crypto?
+
+- Backend applications deal with: Password, JWT secrets, OTP tokens, API keys, Sensitive data 
+
+    Storing or transmitting them in plain text is unsafe. 
+
+- Crypto provides: hashing, encryption, random token generation 
+
+1. **Hashing** - is the process of converting data into a fixed-length value that cannot be reversed back to the original data. 
+
+    Example - Password: sonu123, Hash: a7f9c2d81b...
+
+    We store the hash, not password 
+
+    Suppose, database leaks. Then if stored as normal text, then everyone sees password. That's why passwords are stored as Hash only. 
+
+    Hashing is one way. Meaning: Original -> Hash possible, but Hash -> original, not possible.
+
+2. **Encyrption** - convertes readable data into unreadable ciphertext using a key, and the original data can be recovered through decryption. 
+
+    Example - Hello, Encrypt: x91kd7aP..., Decrypt: Hello returns 
+
+**Difference between Hashing and Encryption**
+
+| Hashing                 | Encryption             |
+| ----------------------- | ---------------------- |
+| One-way                 | Two-way                |
+| Cannot recover original | Can recover original   |
+| Passwords               | Sensitive Data Storage |
+| Verification            | Protection             |
+
 
 - `bcrypt` and `JWT` are built on top of the crypto module. 
 
@@ -843,13 +954,29 @@ Streams are event-driven. When chunk arrives: `data event` fires.
 
 ## How `bcrypt` works?
 
-`bcrypt` is a password hashing algorithm designed to be slow and secure. 
+`bcrypt` is a password hashing algorithm (not encryption) designed to be slow and secure. 
+
+- bcrypt is intentionally slow. A single hash may take: 100ms, 200ms instead of microseconds. Attacker becomes much slower. 
 
 **Why bcrypt is slow (by design)**
 
 - Prevents brute-force attacks
 - Each hash takes measurable time 
 - Attackers can't try millions of passwords quickly 
+
+- Normal hash, may take 0.0001 ms - very fast. 
+
+    Problem - Attacker can try: password1, password2, password3, ... millions of times per second. 
+
+    This is called: Brute Force Attack. 
+
+    `bcrypt` intentionally does: extra computation, extra rounds, extra processing - making each each hash slower. 
+
+    Example: SHA256 -> 1 million hashes/sec
+
+            bcrypt -> 50 hashes/sec 
+
+    That's why bcrypt is slow. Not because it's inefficient. Because it's designed to slow attackers down. 
 
 **Salt**
 
@@ -863,6 +990,33 @@ Streams are event-driven. When chunk arrives: `data event` fires.
 
     Same passwords -> different hashes 
     Each user has unique hash 
+
+- Suppose two users have same password: password123 
+
+    Without salt: Hash1 = abc123 
+                  Hash2 = abc123
+
+                  Same hash. 
+
+    Attacker immediatelly knows: Both users have same password. 
+
+    bcrypt generates: random salt - for every password. 
+
+        User 1: password123 + saltA
+        User 2: password123 + saltB
+
+        Hashes become different. 
+
+**Password Storage Flow**
+
+During registration, the user's password is hashed using bcrypt with a unique salt and only the resulting hash is stored in the database. 
+
+During login, bcrypt hashes the entred password using the same salt and compares the result with the stored hash. If they match, authentication succeeds. 
+
+**How does bcrypt verify passwords if the original password is not stored?**
+
+During login, `bcrypt` retrieves the stored hash, extracts the embedded salt, hashes the user-entered password using the same salt, and compares the resulting hash with the the stored hash. If both hashes match, the password is considered valid. 
+
 
 ## JWT Internals (Header, Payload, Signature)
 
@@ -959,18 +1113,37 @@ Access tokens authorize requests, while refresh tokens reissue access tokens wit
 
 **Access Token**
 
-- A short-lived token used to access protected APIs. 
+- An access token is a short-lived token used to access protected resources and APIs. 
 
 - Sent with every request. Expires quickly (minutes), Limits damage if leaked 
 
+- Short Expiry: Suppose hacker steals token. If token expires in: `15 Minutes` - damage is limited. 
+
 **Refresh Token**
 
-- A long-lived token used to obtain a new access token. 
+- A refresh token is a long-lived token used to obtain a new access token after the current access token expires. 
 
 - Stored securely.
 - Used only when access token expires. 
 - Reduces need for frequent login.  
 
+- Why do we need refresh token? 
+
+    Without refresh token: After 15 minutes - user must: login again. Bad experience. Refresh token solves this. 
+
+**JWT Flow**
+
+- Login: User login -> Access token -> Refresh token 
+
+- Store: Access token, Refresh token 
+
+- After 15 minutes: Access token expires
+
+- Frontend sends: Refresh token to - `POST /refresh-token`
+
+- Server verifies refresh token. If valid: Generate new acccess token. 
+
+    User continus without logging in again. 
 
 ## Cookies Vs. localStorage 
 
@@ -978,7 +1151,9 @@ Cookies are safer for authentication because they can be HTTP-only and protected
 
 **Cookies**
 
-Small data stored by browser and automatically sent with every HTTP request. 
+A cookie is a small piece of data stored in the browser that can be automatically included with every HTTP request sent to the server. 
+
+- Small data stored by browser and automatically sent with every HTTP request. 
 
 - Size limit: 4KB (max size of one cookie). The whole key + value cannot exceed ~4 KB
 - Can be HTTP-only (secure)
@@ -986,11 +1161,64 @@ Small data stored by browser and automatically sent with every HTTP request.
 
 **localStorage**
 
-Browser storage accessible only via JavaScript. 
+LocalStorage is a browser-provided storage mechanism that allows applications to store data as key-value pairs on the client side. The data persists even after the browser is closed and reopened. 
+
+- LocalStorage = small permanent storage inside browser 
+
+- Example: Theme prefernce, language, cart items, user settings 
+
+- Store once, even after the browser is closed and laptop restarted - data remains. 
+ 
+- Characteristics: 
+
+    Stored in browser 
+    Key-value pair
+    Persists after browser close 
+    Accessible through JavaScript 
 
 - Size: 5MB
 - Not sent automatically 
 - Vulnerable to XSS 
+
+| Feature              | Cookie      | LocalStorage       |
+| -------------------- | ----------- | ------------------ |
+| Stored In Browser    | Yes         | Yes                |
+| Auto Sent To Server  | Yes         | No                 |
+| Accessible Via JS    | Usually Yes | Yes                |
+| Expiry Support       | Yes         | No Built-in Expiry |
+| Storage Size         | ~4KB        | ~5MB               |
+| Authentication Usage | Common      | Common             |
+
+
+**Why localStorage risky for JWT**
+
+Suppose: 
+
+```js
+localStorage.setItem(
+  "token",
+  jwt
+);
+```
+
+Attacker injects script: 
+
+```js
+const token =
+  localStorage.getItem(
+    "token"
+  );
+```
+
+Token stolen. This is: XSS, Cross Site Scripting. 
+
+- JavaScript can read LocalStorage. JavaScript has no access to cookies, therefore much safer. 
+
+**Where should JWT be stored?**
+
+- For production applications, JWTs are generally stored in HttpOnly cookies because they are not accesible through JavaScript and provide better protection against XSS attacks. 
+
+    LocalStorage is simpler but is more vulnerable to token theft. 
 
 ## spawn() Vs. fork()
 
@@ -1047,11 +1275,21 @@ Used to create a new Node.js process.
 
 ## `passport` module in NodeJS
 
-Passport is an authentication middleware for Node.js 
+Passport is an authentication middleware for Node.js, that simplifies implementing authentication strategies such as local authentication, JWT authentication, Google OAuth, GitHub Oauth, Social logins, and many others. 
 
 - It doesn't: hash passwords, store users, create tokens 
 
 - It only: authenticates requests 
+
+**The Problem Passport Solves**
+
+- Suppose you want: Email + Password login, Google login, GitHub login, Facebook login 
+
+- Without Passport: you write everything yourself. 
+
+    Passport provides: `Ready-made authentication strategies`
+
+    Passport handles much of the flow
 
 **Why Passport exists**
 
@@ -1124,9 +1362,55 @@ An environment variable that tells Node.js which mode it's running in.
 
 - `NODE_ENV` helps Node applications change behaviour based on environment like development or production. 
 
-## CSRF 
+## FFmpeg 
+
+FFmpeg is an open-source multimedia framework used for processing, converting, streaming, compressing, and manipulating audio and video files. 
+
+    - FFmpeg = Video & Audio Toolkit 
+
+1. **Video Compression**
+
+User uploads: `500 MB Video`. 
+
+Backend: Node.js -> FFmpeg -> 50 MB Video 
+
+2. **Thumbnail Generation**
+
+YouTube style. Upload: movie.mp4 Generate: thumbnail.jpg 
+
+3. **Audio Extraction**
+
+Input: movie.mp4, Output: song.mp3
+
+**So why node developers use FFmpeg**
+
+Node itself cannot: Compress video, Convert video, Resize video 
+
+## XSS and CSRF 
+
+**XSS (Cross-Site Scripting)**
+
+- It's a security vulnerability in which an attacker injects malicious JavaScript code into a web application that executes in another user's browser. 
+
+    Attacker -> Injects script -> Stored in database -> Victim opens page -> Script executes 
+
+- How to prevent XSS? 
+
+1. Sanitize input 
+2. Use HttpOnly cookies 
+
+
+**CSRF (Cross-Site Resourcce Forgery)**
+
+- CSRF is an attack where a malicious website tricks an authenticated user into performing unintented actions on another website. 
 
 - Cross-Site Request Forgery (CSRF) is an attack where a malicious site tricks a logged-in user's browser into performing unwanted actions on a trusted site. 
+
+- Suppose you're logged into: `bank.com`
+
+Browser already has: `Cookie:sessionId=123`, now you visit: `evil.com`
+
+    Now evil.com contains some suspicious codes. Browser automatically sends `Cookie:sessionId=123` to - `bank.com`. Bank thinks: legitimate user made request. And suspicious action performed.
 
 **Why CSRF happens?**
 
@@ -1149,6 +1433,41 @@ CORS blocks browser access to responses, not the request itself.
     `Cluster` allows Node to use all cores. 
 
 - Cluster is a Node.js module that creates multiple Node processes to handle load using the same server port. 
+
+**Let's understand the problem**
+
+Suppose your server machine has: 8 CPU cores. 
+
+    But Node.js starts as: 1 Node process -> Uses 1 Core. So: 
+
+        Core 1 -> Used
+        Core 2 -> Idle 
+        Core 3 -> Idle 
+        Core 4 -> Idle 
+        ...
+
+        We are paying for an 8-core machine but using only one core. 
+
+**What Does Cluster Do?**
+
+Cluster says: Instead of one node process, create multiple node processes. 
+
+    Now: Worker 1 -> Core 1 
+         Worker 2 -> Core 2 
+         Worker 3 -> Core 3
+         ....
+
+    All CPU cores are utilized. 
+
+-  Cluster in Node.js module that creates multiple worker processes to utilize multiple CPU cores and handle more concurrent requests. 
+
+**Why do we need Cluster if node is already good at concurrency?**
+
+Node can handle: 10000 requests, because of: Event loop, Non-blocking I/0
+
+    But, those requests still run under - 1 Process, 1 CPU core 
+
+    Cluster allows: 1 process per core - so CPU resources are fully utilized. 
 
 **How it works?**
 
@@ -1320,11 +1639,44 @@ const authenticate = (req, res, next) => {
 
 **RBAC (Role Based Access Control)**
 
+- RBAC is an authorization model where permissions are assigned to roles, and users obtain permissions through these roles. 
+
+- Suppose your system has: Admin, Teacher, Student
+
+    Permissions: 
+
+        Admin - Create user, Delete user, View Reports 
+        Teacher - Create course, Update course 
+        Student - View Course 
+
 `if(user.role === "admin") allow`
 
 - Example: Admin, User, Manager 
 
+- RBAC authorizes users based on predefined roles. Permissions are assigned to roles rather than individual users, making access management simpler and easier to maintain. 
+
+**Problem with RBAC**
+
+Suppose: Teacher - can edit: Only his own courses. 
+
+    Role alone isn't enough. Need more conditions. This leads to - ABAC. 
+
 **ABAC (Attribute Based Access Control)**
+
+- ABAC is an authorization model where access decisions are based on attributes of the user, resource, action, and environment. 
+
+- Instead of: Role = teacher. ABAC checks: 
+
+    Who is User?
+    Which resource? 
+    What Action? 
+    What conditions? 
+
+- Exmple: Teacher can edit - only courses created by himself. 
+
+    Check: `course.createdBy === req.user.id`
+
+    Now decision depends on: User attribute and resource attribute, not just role. 
 
 `if(user.department === "HR" && resource.ownerId === user.id)`
 
@@ -1332,9 +1684,12 @@ const authenticate = (req, res, next) => {
 
 - Example: User can edit document only if they created it and it's a weekday.
 
+- RBAC = Who are you? 
+
+    ABC = Who are you + What are u accessing + under what conditions 
+
 
 ## File Uploading - Multer 
-
 
 - Node receives files as: binary systems. 
 
@@ -1342,8 +1697,35 @@ const authenticate = (req, res, next) => {
 
 - Real life usage: profile images, product images, document uploads, blog images 
 
+**Why do we need Multer?**
+
+Normal `express.json()` can parse: 
+
+```js
+{
+    "name": "Sonu"
+}
+```
+
+But file uploads are sent as: `multipart/form-data`. Express cannot parse this automatically. Therefore, need: `Multer`
+
+- Multer is a middleware for Express.js used to handle multipart/form-data primarily for file uploads. 
 
 ## File Upload to AWS S3
+
+- Amazon S3 (Simple Storage Service) is an object storage service used to store and retrieve files such as images, videos, documents, and backups.
+
+    User -> Upload Image -> Express + Multer -> Memory Buffer -> AWS S3 -> Get File URL -> Store URL in MongoDB
+
+**Why S3 is better than LocalStorage**
+
+1. Scalability - can store, millions of files 
+
+2. Durability - AWS relicates data 
+
+3. Multiple Servers - Suppose: Server 1, Server 2, Server 3 - All can access, same S3 bucket 
+
+4. CDN Integration - Can integrate with `Amazon CloudFront` for faster image delivery. 
 
 Two common approaches: 
 
@@ -1375,6 +1757,53 @@ Two common approaches:
 
 - In production, we use pre-signed URLs so clients upload directly to S3 without stressing the backend. 
 
+**How would you upload files to AWS S3?**
+
+- The client uploads a file to an Express API. 
+
+- Multer parses the multipart/form-data request and stores the file temporarily in memory. 
+
+- The backend uploads the file buffer to an AWS S3 bucket and stores the returned file URL in the database 
+
+- The application later serves files using that URL. 
+
+## Amazon CloudFront
+
+- Suppose your image is stored in: AWS S3 Mumbai
+
+- User opens website from: New York
+
+- Request: New York -> Mumbai S3 -> Return Image 
+
+    Very far. Higher latency. 
+
+- **Amazon CloudFront** is Content Delivery Network (CDN) that caches and delivers content from edge locations closer to users. 
+
+    CloudFront -> Global Cache Layer between: `user` and `S3`
+
+    Without CloudFront: `User` -> `S3`
+
+    With CloudFront: User -> Nearby CloudFront Server -> S3 (only first time)
+
+- First Request: 
+
+    Delhi user -> CloudFront -> S3 -> Image Returned
+
+    CloudFront stores copy. 
+
+- Second Request: 
+
+    Delhi user -> CloudFront Cache -> Image Returned. 
+
+    No S3 hit. Much faster. 
+
+**What is CDN?**
+
+A CDN (Content Delivery Network) is a distributed network of servers that cache content closer to end users to reduce latency and improve performance. 
+
+**What is CloudFront?**
+
+CloudFront is AWS's CDN service that caches content at edge locations worldwide and serves it from the nearest location to reduce latency and improve performance. 
 
 ## Connection with MongoDB Database 
 
@@ -1401,141 +1830,6 @@ const connectDB = async () => {
 
 module.exports = connectDB;
 ```
-
-## Node.js Redis 
-
-An in-memory data store used for caching, queues, sessions, and pub/sub. 
-
-**Why Redis is fast?**
-
-- Stores data in RAM
-- Simple data structures 
-- Single-threaded but extremely optimized 
-
-**When Redis is used**
-
-- API caching
-- Rate limiting 
-- Session storage
-- Message queues 
-- Pub/Sub 
-
-**Why TTL is important**
-
-- Without TTL: Stale data, Memory leak
-- With TTL: Auto-expiry, Fresh data
-
-
-## Redis Vs. Memcached 
-
-`Memcached` is a simple key-value cache, `Redis` is a full in-memory data store with advanced data structures. 
-
-**Memcached**
-
-- Pure key -> value 
-- Data stored only as strings 
-- No persistence 
-- No data structure
-
-- Use cases: Simple page caching, Session caching (basic)
-
-**Redis**
-
-- In-memory data structure store 
-- Supports: Strings, Lists, Sets, Hashes, Sorted sets, Streams
-
-- Use cases: Caching, Rate limiting, Queues, Sessions, Pub/Sub
-
-**What is Cache hit and a Cache miss?**
-
-- Cache Hit: When requested data is found in cache (Redis)
-
-    `Client -> Redis -> Data Found -> Response`
-
-    Very fast, No DB call, Low latency 
-
-    A cache hit occurs when the requested data is available in cache, so the database is not queried. 
-
-- Cache Miss: When requested data is not found in cache. 
-
-    `Client -> Redis (not found) -> MongoDB -> Redis updated -> Response`
-
-    A cache miss happens when data is not present in cache and must be fetched from the database. 
-
-## Cache Invalidation Strategies 
-
-Cache invalidation is the process of keeping cached data consistent with database when the original data changes. 
-
-**Why is cache invalidation a problem?**
-
-- The root issue: Cache is a copy of data. 
-
-    When DB changes: DB updated. Cache still has old data. 
-
-    Now our app serves stale data. 
-
-- Example: 
-
-    User updates the profile name, MongoDB -> Rahul, Redis Cache -> Rohit 
-
-    Next request: API hits Redis, Returns old name 
-
-**How this problem arises**
-
-1. First request -> data fetched from DB 
-2. Data stored in Redis
-3. DB record is updated later
-4. Cache is not updated 
-5. Users see outdated data 
-
-    That gap is the cache invalidation problem. 
-
-**How Redis solves cache invalidation**
-
-1. Strategy 1: TTL
-
-`redis.setEx("user:1", 60, JSON.stringify(user));`
-
-- How it helps: Cache auto-expires, Eventually fetches fresh DB data
-
-2. Explicit deletion 
-
-
-**Cache invalidation using RabbitMQ**
-
-- Problems in distributed systems - You have: Service A, Service B, Service C 
-
-    All use Redis. 
-
-- When DB updates: All caches must be cleared. 
-
-1. DB updated 
-2. Event published: `USER_UPDATED`
-3. All services consume event 
-4. Each service invalidates cache 
-
-    `redis.del(user)`
-
-
-**Why do we delete cache after DB update?**
-
-```js
-await User.findByIdAndUpdate(id, data) ; 
-await redis.del(`user:${id}`);
-```
-
-1. User updates profile 
-2. MongoDB gets updated
-3. Old data still exists in Redis
-4. We delete the cache manually 
-5. Next request comes
-6. Redis has no data -> cache miss
-7. Fresh data fetched from DB 
-8. Cache rebuilt with updated data 
-
-- This guarantees fresh data, prevents stale responses, Common in real systems
-
-- After updating the database, we delete the cache so the next read fetches fresh data and rebuilds the cache. 
 
 ## Latency
 
@@ -1588,180 +1882,6 @@ Decoupled services do not directly depend on each other's implementation.
 - Decoupled services communicate via events, making the system scalable and resilient. 
 
 
-## WebSocket 
-
-WebSocket provides full-duplex, persistent communication between client and server. 
-
-- WebSocket maintains a persistent connection, allowing the server to push real-time updates with minimal latency. 
-
-- Before WebSocket: HTTP only, Server couldn't push data, Clients had to poll 
-
-    `setInterval(fetchMessages, 1000);`
-
-- Problems: Wasted network, Deplayed updates, Server overload 
-
-**How WebSocket solves**
-
-WebSocket enables:
-
-- real-time
-- low-latency
-- two-communication
-
-    between client and server. 
-
-**How WebSocket works**
-
-1. Client sends HTTP request
-2. Server upgrates protocol to WebSocket 
-3. Connection stays open 
-4. Data flows both way 
-
-    `HTTP -> WebSocket -> Persistent Connection`
-
-**Why latency is low in WebSocket**
-
-- No repeated HTTP requests
-- No headers overhead
-- No reconnection cost 
-- Server pushes data instantly 
-
-**Why does HTTP cause high latency for real-time apps?**
-
-- Core reason: HTTP is request-response based. 
-
-1. Client sends request 
-2. Server responds 
-3. Connection closes 
-4. Repeat again and again. 
-
-**What is HTTP handshake?**
-
-An HTTP handshake is the process of establishing a connection between client and server. 
-
-- For real-time systems, repeated handshakes significantly increase latency. 
-
-**What does polling mean?**
-
-Polling means repeatedly asking the server if new data is available. 
-
-```js
-setInterval(()=> {
-    fetch("/messages");
-},1000) ; 
-```
-
-- Problem: Many unnecessary requests, Server overload, Delayed real-time updates 
-
-- Polling wastes resources because the client repeatedly asks even when no new data exists. 
-
-**How does WebSocket connection work?**
-
-1. Client sends HTTP request
-2. Server upgrades protocol to WebSocket 
-3. Connection remains open
-4. Client and server can send data anytime 
-
-**HTTP is two-way too, so why WebSocket?**
-
-HTTP: 
-
-- Client always starts communication 
-- Server cannot send data on its own
-- Connection closes after response 
-
-WebSocket: 
-
-- Both can send data anytime 
-- Server can push messages 
-- Connection stays open 
-
-HTTP is bidirectional, but not real-time whereas WebSocket allows full-duplex communication. 
-
-**Isn't keeping a WebSocket connection open expensive?**
-
-No. Why it's efficient: 
-
-- No repeated handshakes 
-- No repeated headers
-- One persistent connection 
-- Less CPU & network usage over time. 
-
-| HTTP                   | WebSocket           |
-| ---------------------- | ------------------- |
-| Many short connections | One long connection |
-| Repeated overhead      | Minimal overhead    |
-| High latency           | Low latency         |
-
-
-A persistent WebSocket connection is more efficient than repeated HTTP requests for real-time communication. 
-
-
-**Real-life use cases**
-
-- Chat apps 
-- Notifications 
-- Live tracking 
-- Multiplayer games 
-
-**Socket.io Vs. WebSocket**
-
-- WebSocket: protocol, low-level, minimal overhead
-
-- Socket.io: library, Auto reconnection
-
-- WebSocket is the protocol; Socket.IO is a higher-level abstraction with extra features. 
-
-## Polling Vs. Push
-
-**Polling**
-
-- Client keeps asking server: Any update? Any update? Any update?
-
-- Problems: Wasted requests, High server load, Delayed updates, Poor scalability 
-
-```js
-setInterval(() => {
-    fetch("/notifications") ;
-}, 2000)
-```
-
-- Polling is inefficient because the client sends repeated requests even when no new data is availble. 
-
-**Push (WebSocket / Socket.io)**
-
-- Server pushes data instantly when it changes. 
-
-- Flow: Connection open, Server sends data when needed, No repeated requests 
-
-- Benefits: Real-time updates, Low latency, Fewer network calls 
-
-- Push-based communication allows the server to send data immediately without the client requesting it repeatedly.
-
-
-## Socket.IO room 
-
-A room is a logical group of socket connections. 
-
-- It lets you send messages to specific users or groups, not everyone. 
-
-**Real-life use cases**
-
-- Chat app: one room per chat, Only chat members receive messsages 
-
-- Notifications: One room per user, User gets only their notifications 
-
-- Live classes: One room per class, Only enrolled users get updates 
-
-`Socket joins room -> Server emits to room -> Only sockets in that room receive it`
-
-**Why rooms matter**
-
-- Without rooms: `io.emit()` - sends to everyone 
-
-- With rooms: `io.to(roomId).emit()` - targeted
-
-
 ## Event emitter 
 
 `EventEmitter` is a core Node.js module that allows objects to emit and listen to events. 
@@ -1779,112 +1899,6 @@ A room is a logical group of socket connections.
     Button click -> event emitted. Someone listening -> reacts 
 
 - `EventEmitter` is Node.js's core event-driven abstraction, enabling asynchronous, non-blocking execution through emitted events and listeners. 
-
-
-## Payment Gateway and Order Management 
-
-
-`Client (Web/App) -> Backend (Orders & Payments) -> Payment Gateway (Razorpay / Stripe) -> Bank / Card Network`
-
-Payment systems are asynchronous, idempotent, and event-driven. This means: 
-
-- Asynchronous: Payment does not finish instantly 
-
-- Idempotent: Same action repeated does not cause duplicate result 
-
-- Event-driven: System reacts to payment events instead of assuming success. 
-
-**What does asynchronous mean in payments?**
-
-Payment takes time and happens in multiple steps. 
-
-- Why? Bank processing, Network delays, User actions (OTP, UPI approval)
-
-- Example: User clicks Pay -> Payment is started -> Final result comes later via webhook 
-
-- Payments are asynchronous because the final success or failure is confirmed later by the payment gateway. 
-
-**What is Idempotent?**
-
-Doing the same operation multiple times gives the same result. 
-
-- Example: User clicks Pay twice or Gateway sends webhook twice. 
-
-    Without idempotency: Money deducted twice, Order shipped twice 
-
-    With idempotency: Payment processed once, Order updated once 
-
-- Idempotency is implemented by checking the current state before processing and ignoring duplicate requests. 
-
-**How we ensure Idempotency?**
-
-- Every order has unique `orderId`
-
-- Before updating order: Check current status 
-
-- Idempotency ensures that repeated requests don't create duplicate payments or orders. 
-
-**What does event-driven mean in Payment systems?**
-
-- System waits for events like "payment success" or "payment failed". 
-
-- Example: payment.success, payment.failed, refund.completed 
-
-    System reacts only when event happens. 
-
-**How do we avoid double charges?**
-
-Problems that cause double charge: 
-
-- User double clicks pay button 
-- Page refresh 
-- Network retry 
-- Webhook sent twice 
-
-Solutions: 
-
-- Unique order ID (Every payment tied to one order)
-
-- Disable pay button (After first click)
-
-- Idempotent backend logic (Is this order already paid?)
-
-**How to handle double click on Pay button**
-
-Frontend solution: 
-
-- Disable button after first click
-- Show loader 
-
-Backend solution (Even if frontend fails): 
-
-- Backend checks order status 
-- Processes payment only once 
-
-
-## Webhook 
-
-A webhook is a server-to-server callback sent by the payment gateway to notify payment result. 
-
-- Why webhook is needed? 
-
-    Frontend cannot be trusted, 
-    
-    Payment happens outside your system 
-
-- Example: 
-
-    User pays -> Gateway processes -> Gateway calls your backend API 
-
-- Webhooks allows payment gateways to securely notify backend systems about payment outcomes 
-
-| HTTP API               | Webhook               |
-| ---------------------- | --------------------- |
-| Client → Server        | Server → Server       |
-| Request based          | Event based           |
-| Frontend calls backend | Gateway calls backend |
-| User initiated         | System initiated      |
-
 
 
 ## Full Payment + Order Management 

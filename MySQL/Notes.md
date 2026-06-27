@@ -1,10 +1,26 @@
+- Relational databases uses: Tables, Rows, Columns, Relationships 
+
+- SQL (Structured Query Language) is a standard language used to define, manage, query and manipulate data stored in relational database management systems such as MySQL, PostgreSQL, SQL Server, and Oracle. 
+
+**What is a Relational Database?**
+
+A relational database stores data in tables consisting of rows and columns. Relationships between tables are established using keys, enabling structured storage and efficient retrieval of related data. 
+
+**Why use SQL databases?**
+
+Relational databases provide a structured way to store and manage data through tables and relationships. 
+
+    They enforce data consistency, support complex queries, maintain refrential integrity, and offer transactional guarantees. 
+
+    These features make them suitable for applications where accuracy and consistency are critical, such as banking systems, eCommerce platforms, ERP systems, and financial applications. 
+
 | Feature     | MySQL            | PostgreSQL           | MongoDB                             |
 | ----------- | ---------------- | -------------------- | ----------------------------------- |
 | Type        | Relational (SQL) | Relational (SQL)     | NoSQL (Document)                    |
 | Schema      | Fixed            | Fixed (very strict)  | Flexible                            |
 | Data format | Tables & rows    | Tables & rows        | JSON-like documents                 |
 | Relations   | Yes              | Yes (very powerful)  | No joins (limited via lookup)       |
-| ACID        | Yes              | **Very strong**      | Partial (strong now but diff model) |
+| ACID        | Yes              | Very strong     | Partial (strong now but diff model) |
 | Best for    | Simple apps      | Complex data & logic | Rapid dev, flexible data            |
 
 - MySQL/PostgreSQL = structured, relational data 
