@@ -566,6 +566,10 @@ S3 is responsible for durable object storage, whereas CloudFront is responsible 
 
     This distributes traffic evenly, prevents server overload, and improves overall application avaialability. 
 
+- An Application Load Balancer (ALB) operates at the application layer (layer 7) of the OSI model. Unliker lower-level load balancers that route traffic based only on IP addresses and ports, an ALB understands HTTP and HTTPS requests and can make routing decisions based on application-specific information such as URL paths, hostnames, HTTP methods, and request headers. 
+
+    This makes it well suited for modern web applications and microservices. 
+
 **Why Was Load Balancer Created?**
 
 Suppose your Node.js backend is deployed on one EC2 instance. 
@@ -593,6 +597,20 @@ Question - What is the obvious solution?
     That someone is called a: Load Balancer. 
 
 - Work (traffic) gets distributed evenly. 
+
+**Does ALB Poll Every Server? Isn't That Expensive?**
+
+Technically, Yes. It periodically sends health check requests. 
+
+Example: `GET /health`
+
+Every: 10 seconds, 15 seconds, 30 seconds - depending on configuration. 
+
+Question - Doesn't that create unnecessary load? 
+
+Suppose your server handles: `50,000 requests/minute`. A health check every 30 seconds is tiny in comparison. 
+
+
 
 **Real Production Flow**
 
